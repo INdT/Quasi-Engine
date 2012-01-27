@@ -18,16 +18,12 @@ QuasiGame {
         viewport: Viewport {
             id: gameViewport
 
-            property bool __moveRight: false
-            property bool __moveLeft: false
-            property bool __moveDown: false
-            property bool __moveUp: false
-
             updateInterval: 10
 
             updateScript: {
                 var yDiffTop = projectile.y - gameViewport.yOffset
 
+                // XXX use projectile velocity
                 if (Math.abs(yDiffTop) > 100)
                     gameViewport.vScroll(yDiffTop * 0.05)
 
@@ -95,9 +91,16 @@ QuasiGame {
         anchors.fill: parent
 
         onClicked: {
-            projectile.applyLinearImpulse(Qt.point(800* (game.mouse.x - projectile.x),
-                                                   800* (game.mouse.y - projectile.y)),
-                                          Qt.point(projectile.x, projectile.y))
+            var xLaunch = 800 * (game.mouse.x - projectile.x);
+            var yLaunch = 800 * (game.mouse.y - projectile.y);
+
+            xLaunch = xLaunch > 150000 ? 150000 : xLaunch
+            yLaunch = yLaunch < -150000 ? -150000 : yLaunch
+
+            print (xLaunch, yLaunch)
+
+            projectile.applyLinearImpulse(Qt.point(xLaunch, yLaunch),
+                                          Qt.point(projectile.x + projectile.width / 2.0, projectile.y + projectile.height / 2.0)) // XXX expose b2pos
         }
     }
 }
