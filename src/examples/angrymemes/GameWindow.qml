@@ -5,15 +5,15 @@ QuasiGame {
     id: game
 
     width: 800
-    height: 601
+    height: 600
 
     currentScene: scene
 
     Box2DScene {
         id: scene
 
-        width: 1594
-        height: 601
+        width: 2048
+        height: 800
 
         viewport: Viewport {
             id: gameViewport
@@ -110,7 +110,7 @@ QuasiGame {
             Box2DItem {
                 id: ground
 
-                y: 440
+                y: 750
 
                 bodyType: Box2DItem.Static
                 friction: 0.3
@@ -118,8 +118,13 @@ QuasiGame {
                 restitution: 0.3
                 sleepingAllowed: false
 
-                width: 1594
-                height: 10
+                width: scene.width
+                height: 50
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: "brown"
+                }
             },
             Box2DItem {
                 id: mouseItem
