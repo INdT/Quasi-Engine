@@ -38,7 +38,8 @@ Layer::Layer(QuasiDeclarativeItem *parent)
     , m_type(Quasi::InfiniteType)
     , m_areaToDraw(2.0)
     , m_columnOffset(0)
-    , m_latestPoint(0)
+    , m_rowOffset(0)
+    //, m_latestPoint(0)
 {
 #if QT_VERSION >= 0x050000
     setZ(Quasi::InteractionLayerOrdering_01);
@@ -375,7 +376,7 @@ void Layer::updateTiles()
     drawPixmap();
 }
 
-QPixmap Layer::generatePartialPixmap(int startPoint, int size)
+QPixmap Layer::generatePartialHPixmap(int startPoint, int size)
 {
     QPixmap temp(m_tileWidth * size, boundingRect().height());
 
@@ -401,7 +402,63 @@ QPixmap Layer::generatePartialPixmap(int startPoint, int size)
     return temp;
 }
 
+// TODO
+QPixmap Layer::generatePartialVPixmap(int startPoint, int size)
+{
+    QPixmap temp(boundingRect().width(), m_tileHeight * size);
+
+    QPainter p(&temp);
+        int i, j;
+        int index = 0;
+        for (i = 0; i < m_numColumns; i++) {
+            for (j = 0; j < size; j++) {
+                index = ((i + startPoint) + (j * m_totalRows));
+
+                p.drawPixmap(j * m_tileWidth, i * m_tileHeight, getTile(index));
+
+                // just draw a grid
+                // XXX chech the possibility of drawn it only on a debug mode
+                if (m_drawGrid) {
+                    p.setPen(m_gridColor);
+                    p.drawRect(j * m_tileWidth, i * m_tileHeight, m_tileWidth, m_tileHeight);
+                }
+            }
+        }
+    p.end();
+
+    //temp.save(QString("/tmp/ABC/temp%1.png").arg(index));////
+    return temp;
+}
+
 void Layer::drawPixmap()
+{
+    if ((boundingRect().width() == 0) || (boundingRect().height() == 0))
+        return;
+
+    if (m_currentImage)
+        delete m_currentImage;
+
+    m_currentImage = new QImage(boundingRect().width(), boundingRect().height() * m_areaToDraw, QImage::Format_ARGB32_Premultiplied);
+
+    QPainter p(m_currentImage);
+        int yPoint = 0;
+        for (int i = 0; i < m_offsets[m_rowOffset].size(); i++) {
+            Offsets offset = m_offsets[m_rowOffset].at(i);
+
+            QPixmap pix = generatePartialVPixmap(offset.point(), offset.size());
+            p.drawPixmap(0, yPoint, pix);
+
+            yPoint += pix.height();
+            //m_latestPoint = offset.point();
+        }
+
+        if (m_direction == Quasi::UpwardDirection)
+            m_rowOffset = (m_rowOffset - 1 < 0) ? m_offsets.size() - 1 : m_rowOffset - 1;
+        else
+            m_rowOffset = (m_rowOffset + 1) % m_offsets.size();
+    p.end();
+}
+/*void Layer::drawPixmap()
 {
     if ((boundingRect().width() == 0) || (boundingRect().height() == 0))
         return;
@@ -416,11 +473,11 @@ void Layer::drawPixmap()
         for (int i = 0; i < m_offsets[m_columnOffset].size(); i++) {
             Offsets offset = m_offsets[m_columnOffset].at(i);
 
-            QPixmap pix = generatePartialPixmap(offset.point(), offset.size());
+            QPixmap pix = generatePartialHPixmap(offset.point(), offset.size());
             p.drawPixmap(xPoint, 0, pix);
 
             xPoint += pix.width();
-            m_latestPoint = offset.point();
+            //m_latestPoint = offset.point();
         }
 
         if (m_direction == Quasi::ForwardDirection)
@@ -428,4 +485,4 @@ void Layer::drawPixmap()
         else
             m_columnOffset = (m_columnOffset + 1) % m_offsets.size();
     p.end();
-}
+}*/

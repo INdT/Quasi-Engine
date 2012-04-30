@@ -46,7 +46,9 @@ public:
     // Used on Layer
     enum LayerDirection {
         BackwardDirection = 0, // -1 returns undefined on QML :(
-        ForwardDirection = 1
+        ForwardDirection = 1,
+        DownwardDirection = 2,
+        UpwardDirection = 3
     };
 
     // Used on Layers

@@ -141,7 +141,8 @@ protected:
     qreal m_factor;
 
 private:
-    QPixmap generatePartialPixmap(int startPoint, int size);
+    QPixmap generatePartialHPixmap(int startPoint, int size);
+    QPixmap generatePartialVPixmap(int startPoint, int size);
     void generateOffsets();
 
     QList<Offsets::OffsetsList> m_offsets;
@@ -153,7 +154,8 @@ private:
 
     const float m_areaToDraw;
     int m_columnOffset;
-    int m_latestPoint;
+    int m_rowOffset;
+    //int m_latestPoint;
 
     bool m_drawGrid;
     QColor m_gridColor;

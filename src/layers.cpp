@@ -167,7 +167,7 @@ void Layers::changeXOffset()
 void Layers::changeYOffset()
 {
     foreach (Layer *layer, m_layers) {
-        layer->setY(m_xOffset);
+        layer->setY(m_yOffset);
 
         StaticLayer *sl = qobject_cast<StaticLayer *>(layer);
         if (sl)
