@@ -31,7 +31,7 @@ QuasiGame {
         id: scene
 
         width: parent.width * 2
-        height: parent.height
+        height: parent.height * 2
 
         entities: [
             QuasiLayers {
@@ -82,6 +82,12 @@ QuasiGame {
                             break;
                         case Qt.Key_Right:
                             gameViewport.hScroll(gameViewport.xOffset - 50);
+                            break;
+                        case Qt.Key_Up:
+                            gameViewport.vScroll(gameViewport.yOffset - 50);
+                            break;
+                        case Qt.Key_Down:
+                            gameViewport.vScroll(gameViewport.yOffset + 50);
                             break;
                     }
                 }
