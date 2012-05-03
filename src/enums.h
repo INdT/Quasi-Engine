@@ -30,7 +30,6 @@ class Quasi : public QObject {
     Q_ENUMS (
         LayerType
         LayerDirection
-        DrawType
         Ordering
         BodyShape
         BodyType
@@ -47,12 +46,6 @@ public:
     enum LayerDirection {
         BackwardDirection = 0, // -1 returns undefined on QML :(
         ForwardDirection = 1
-    };
-
-    // Used on Layers
-    enum DrawType {
-        PlaneDrawType,
-        TiledDrawType
     };
 
     // This is for the use of Layers and Items

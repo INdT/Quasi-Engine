@@ -37,19 +37,11 @@ void Layers::append_layer(QDeclarativeListProperty<Layer> *list, Layer *layer)
 
 Layers::Layers(Scene *parent)
     : Entity(parent)
-    , m_tileWidth(32)
-    , m_tileHeight(32)
-    , m_totalColumns(0)
-    , m_drawType(Quasi::TiledDrawType)
     , m_xOffset(0)
     , m_yOffset(0)
 {
     connect(this, SIGNAL(xOffsetChanged()), this, SLOT(changeXOffset()));
     connect(this, SIGNAL(yOffsetChanged()), this, SLOT(changeYOffset()));
-
-    // control variables
-    m_drawGrid = false;
-    m_gridColor = Qt::red;
 }
 
 #if QT_VERSION >= 0x050000
@@ -67,18 +59,6 @@ QDeclarativeListProperty<Layer> Layers::layers() const
 Layers::~Layers()
 {
     m_layers.clear();
-}
-
-void Layers::setTileHeight(const int &tileHeight)
-{
-    if (m_tileHeight != tileHeight)
-        m_tileHeight = tileHeight;
-}
-
-void Layers::setTileWidth(const int &tileWidth)
-{
-    if (m_tileWidth != tileWidth)
-        m_tileWidth = tileWidth;
 }
 
 void Layers::setXOffset(const qreal &xOffset)
@@ -99,37 +79,6 @@ void Layers::setYOffset(const qreal &yOffset)
     }
 }
 
-void Layers::setDrawGrid(bool draw)
-{
-    if (draw != m_drawGrid)
-        m_drawGrid = draw;
-}
-
-void Layers::setGridColor(const QColor &color)
-{
-    if (color != m_gridColor)
-        m_gridColor = color;
-}
-
-//! Stores the layer type
-/*!
- * \param drawType can be Tiled (default) or Plane
- */
-void Layers::setDrawType(Quasi::DrawType drawType)
-{
-    if (m_drawType != drawType)
-        m_drawType = drawType;
-}
-
-//! Gets the layer type
-/*!
- * \return Tiled or Plane according the layer draw type
- */
-Quasi::DrawType Layers::drawType() const
-{
-    return m_drawType;
-}
-
 void Layers::update(const int &delta)
 {
     Q_UNUSED(delta)
@@ -137,16 +86,10 @@ void Layers::update(const int &delta)
     foreach (Layer *layer, m_layers) {
         // If the layer isn't initialized, set their properties
         if (layer->boundingRect() == QRectF()) {
-            layer->setDrawType(m_drawType);
-            layer->setTileWidth(m_tileWidth);
-            layer->setTileHeight(m_tileHeight);
             layer->setWidth(parentItem()->parentItem()->width()); // grandpa?
             layer->setHeight(parentItem()->parentItem()->height()); // grandpa!
 
-            layer->setDrawGrid(m_drawGrid);
-            layer->setGridColor(m_gridColor);
-
-            layer->updateTiles();
+            layer->initialize();
         }
 
         layer->update();
@@ -167,7 +110,7 @@ void Layers::changeXOffset()
 void Layers::changeYOffset()
 {
     foreach (Layer *layer, m_layers) {
-        layer->setY(m_xOffset);
+        layer->setY(m_yOffset);
 
         StaticLayer *sl = qobject_cast<StaticLayer *>(layer);
         if (sl)

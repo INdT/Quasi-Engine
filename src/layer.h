@@ -29,32 +29,42 @@
 #include <QtCore/QList>
 #include <QtCore/QString>
 #include <QtGui/QPixmap>
+#include <QtGui/QImageReader>
 
 class Offsets {
 public:
     typedef QList<Offsets> OffsetsList;
 
-    Offsets() { m_point = m_size = 0; }
-    Offsets(int point, int size)
+    Offsets() { m_point = m_size = 0; m_mirror = false; }
+    Offsets(const int &point, const int &size, const bool &mirror = false)
     {
         m_point = point;
         m_size = size;
+        m_mirror = mirror;
     }
     ~Offsets() {}
 
     int point() const { return m_point; }
-    void setPoint(int point)
+    void setPoint(const int &point)
     {
         if (point != m_point)
             m_point = point;
     }
 
     int size() const { return m_size; }
-    void setSize(int size)
+    void setSize(const int &size)
     {
         if (size != m_size)
             m_size = size;
     }
+
+    bool mirror() const { return m_mirror; }
+    void setMirror(const bool &mirror)
+    {
+        if (mirror != m_mirror)
+            m_mirror = mirror;
+    }
+
     bool operator==(const Offsets &other) const {
         return ((this->point() == other.point())
                 && (this->size() == other.size()));
@@ -63,6 +73,7 @@ public:
 private:
     int m_point;
     int m_size;
+    bool m_mirror;
 };
 
 //! A layer class
@@ -85,9 +96,6 @@ public:
     void setSource(const QString &source);
     QString source() const;
 
-    void setDrawType(Quasi::DrawType drawType);
-    Quasi::DrawType drawType() const;
-
     void setFactor(qreal factor);
     qreal factor() const;
 
@@ -100,30 +108,12 @@ public:
     Quasi::LayerDirection direction() const { return m_direction; };
     void setDirection(const Quasi::LayerDirection &direction);
 
-    int tileHeight() const { return m_tileHeight; }
-    void setTileHeight(const int &value);
-
-    int tileWidth() const { return m_tileWidth; }
-    void setTileWidth(const int &value);
-
-    int addTile(const QPixmap &pix);
-    QPixmap getTile(int pos) const;
-
-    bool drawGrid() const { return m_drawGrid; }
-    void setDrawGrid(bool draw);
-
-    QColor gridColor() const { return m_gridColor; }
-    void setGridColor(const QColor &color);
-
     int count() const;
 
     void drawPixmap();
-
-public slots:
-    virtual void updateTiles();
+    void initialize();
 
 signals:
-    void tilesChanged();
     void directionChanged();
     void layerTypeChanged();
 
@@ -131,32 +121,21 @@ protected:
     QImage *m_currentImage;
     Quasi::LayerDirection m_direction;
 
-    int m_tileWidth;
-    int m_tileHeight;
-    int m_numColumns;
-    int m_numRows;
-    int m_totalColumns;
-    int m_totalRows;
-
     qreal m_factor;
 
 private:
+    QImageReader imageReader;
     QPixmap generatePartialPixmap(int startPoint, int size);
     void generateOffsets();
 
     QList<Offsets::OffsetsList> m_offsets;
-    QList<QPixmap> m_pixmaps;
 
     QString m_source;
-    Quasi::DrawType m_drawType;
     Quasi::LayerType m_type;
 
-    const float m_areaToDraw;
     int m_columnOffset;
-    int m_latestPoint;
-
-    bool m_drawGrid;
-    QColor m_gridColor;
+    int m_imageWidth;
+    int m_imageHeight;
 };
 
 #endif /* _LAYER */

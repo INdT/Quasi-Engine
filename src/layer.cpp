@@ -31,14 +31,11 @@
 Layer::Layer(QuasiDeclarativeItem *parent)
     : QuasiPaintedItem(parent)
     , m_direction((Quasi::LayerDirection)-1) // Backward
-    , m_tileWidth(32)
-    , m_tileHeight(32)
     , m_factor(1.0)
-    , m_drawType(Quasi::TiledDrawType)
     , m_type(Quasi::InfiniteType)
-    , m_areaToDraw(2.0)
     , m_columnOffset(0)
-    , m_latestPoint(0)
+    , m_imageWidth(0)
+    , m_imageHeight(0)
 {
 #if QT_VERSION >= 0x050000
     setZ(Quasi::InteractionLayerOrdering_01);
@@ -52,7 +49,6 @@ Layer::Layer(QuasiDeclarativeItem *parent)
 //! Class destructor
 Layer::~Layer()
 {
-    m_pixmaps.clear();
 }
 
 //! Stores the source path for the image
@@ -61,8 +57,13 @@ Layer::~Layer()
  */
 void Layer::setSource(const QString &source)
 {
-    if (m_source != source)
+    if (m_source != source) {
         m_source = source;
+
+        imageReader.setFileName(m_source);
+        m_imageWidth = imageReader.size().width();
+        m_imageHeight = imageReader.size().height();
+    }
 }
 
 //! Gets the image source path
@@ -72,25 +73,6 @@ void Layer::setSource(const QString &source)
 QString Layer::source() const
 {
     return m_source;
-}
-
-//! Stores the layer type
-/*!
- * \param drawType can be Tiled (default) or Plane
- */
-void Layer::setDrawType(Quasi::DrawType drawType)
-{
-    if (m_drawType != drawType)
-        m_drawType = drawType;
-}
-
-//! Gets the layer type
-/*!
- * \return Tiled or Plane according the layer draw type
- */
-Quasi::DrawType Layer::drawType() const
-{
-    return m_drawType;
 }
 
 void Layer::setDirection(const Quasi::LayerDirection &direction)
@@ -164,130 +146,67 @@ void Layer::setLayerType(const Quasi::LayerType &type)
     }
 }
 
-
-void Layer::setTileHeight(const int &value)
+// XXX
+void Layer::initialize()
 {
-    if (m_drawType == Quasi::PlaneDrawType)
-        return;
-
-    if (value != m_tileHeight) {
-        m_tileHeight = value;
-
-        if (m_tileWidth != 0 && m_tileHeight != 0)
-            emit tilesChanged();
-    }
-}
-
-void Layer::setTileWidth(const int &value)
-{
-    if (m_drawType == Quasi::PlaneDrawType)
-        return;
-
-    if (value != m_tileWidth) {
-        m_tileWidth = value;
-
-        if (m_tileWidth != 0 && m_tileHeight != 0)
-            emit tilesChanged();
-    }
-}
-
-//! Adds a tile on the list
-/*!
- * \param pix the pixmap to append on the list
- * \return the list actual size or -1 if the layer can not accept tiled pixmaps
- */
-int Layer::addTile(const QPixmap &pix)
-{
-    m_pixmaps.append(pix);
-
-    return m_pixmaps.size();
-}
-
-//! Gets a tile from the list
-/*!
- * \param pos the tile position on the list
- * \return the tile pixmap of position pos on the list or null, if none
- */
-QPixmap Layer::getTile(int pos) const
-{
-    return m_pixmaps.at(pos);
-}
-
-void Layer::setDrawGrid(bool draw)
-{
-    if (draw != m_drawGrid)
-        m_drawGrid = draw;
-}
-
-void Layer::setGridColor(const QColor &color)
-{
-    if (color != m_gridColor)
-        m_gridColor = color;
-}
-
-//! Gets the tiles pixmap list size
-/*!
- * \return the tiles pixmap list size
- */
-int Layer::count() const
-{
-    return m_pixmaps.size();
+    generateOffsets();
+    drawPixmap();
 }
 
 void Layer::generateOffsets()
 {
+    // TODO mirror?
+    // TODO generate Y offsets too?
     bool completed = false;
     int start = 0;
-    int step = m_numColumns;
-    int max = m_totalColumns;
+    int step = boundingRect().width();
+    int max = m_imageWidth * (m_type == Quasi::MirroredType ? 2 : 1);// TODO
     int count = 0;
-    int maxCount = step * (int)m_areaToDraw;
+    int maxCount = step * 2;
     bool first = true;
     Offsets::OffsetsList firstPoint;
 
     while (!completed) {
         Offsets::OffsetsList offsetsList;
 
-        int tamanho;
-        int fim = 0;
-        bool finish = false;
+        int size;
+        int end = 0;
 
         while (count < maxCount) {
-            fim = (start + step) % max;
+            end = (start + step) % max;
 
-            if (fim - start > 0) {
-                tamanho = step;
-                count += tamanho;
+            //bool mirror = start >= m_imageWidth;
+            if (end - start > 0) {
+                size = step;
+                count += size;
 
-                // TODO check this comparison. Is it really needed?
-                if (finish || count != maxCount) {
-                    offsetsList.append(Offsets(start, tamanho));
+                bool brake = (start < m_imageWidth) && (start + size >= m_imageWidth);
+                if (brake) {
+                    offsetsList.append(Offsets(start, m_imageWidth - start));
+                    offsetsList.append(Offsets(0, size - (m_imageWidth - start), true));
+                } else
+                    offsetsList.append(Offsets(start, size, start >= m_imageWidth));
 
-                    if (!finish)
-                        start = fim;
-                    finish = false;
-                } else {
-                    offsetsList.append(Offsets(start, tamanho));
-                }
+                if (count != maxCount)
+                    start = end;
             } else {
                 int oldStart = start;
-                tamanho = max - start;
-                count += tamanho;
+                size = max - start;
+                count += size;
 
-                offsetsList.append(Offsets(start, tamanho));
+                offsetsList.append(Offsets(start, size, m_type == Quasi::MirroredType));
 
-                tamanho = step - tamanho;
+                size = step - size;
                 start = 0;
-                count += tamanho;
+                count += size;
 
-                if (tamanho != 0) {
-                    offsetsList.append(Offsets(0, tamanho));
+                if (size != 0) {
+                    offsetsList.append(Offsets(0, size));
                 }
 
-                if (count <= maxCount / 2) {
-                    start = tamanho;
-                    finish = true;
-                } else
+                if (count <= maxCount / 2)
+                    start = size;
+                else
                     start = oldStart;
             }
         }
@@ -306,99 +225,17 @@ void Layer::generateOffsets()
     }
 }
 
-void Layer::updateTiles()
-{
-    if ((boundingRect().width() == 0) || (boundingRect().height() == 0))
-        return;
-
-    // TODO create enums to define image aspect, auto tile, etc...
-    QPixmap pix(source()); // TODO
-
-    if (m_drawType == Quasi::PlaneDrawType) {
-        m_tileWidth = width();
-        m_tileHeight = height();
-
-        if (pix.width() % (int)width() != 0) {
-            // XXX create some log system?
-            qCritical() << QString("Quasi>>Image \'%1\' doesn't contains a proper size... CROPPING!").arg(source());
-
-            int newWidth = pix.width() - (pix.width() % (int)width());
-            pix = pix.copy(0, 0, newWidth, height());
-        }
-    }
-
-    if (pix.width() < boundingRect().width()) {
-        QPixmap temp(boundingRect().width(), boundingRect().height());
-        QPainter p(&temp);
-            p.drawTiledPixmap(boundingRect(), pix, QPoint(0,0));
-        p.end();
-
-        pix = temp;
-    }
-
-    if (m_type == Quasi::MirroredType) {
-        QPixmap temp(pix.width() * 2, pix.height());
-
-        QPainter p(&temp);
-            p.drawPixmap(0, 0, pix.width(), pix.height(), pix);
-            p.drawPixmap(pix.width(), 0, pix.width(), pix.height(),
-                        pix.transformed(QTransform().scale(-1, 1), Qt::FastTransformation));
-        p.end();
-
-        pix = temp;
-    }
-
-    // visible tiles
-    m_numColumns = boundingRect().width() / m_tileWidth;
-    m_numRows = boundingRect().height() / m_tileHeight;
-
-    // total of columns and rows
-    m_totalColumns = pix.width() / m_tileWidth;
-    m_totalRows = pix.height() / m_tileHeight;
-
-    int i, j;
-    for (i = 0; i < m_totalRows; i++) {
-        for (j = 0; j < m_totalColumns; j++) {
-            QPixmap temp(m_tileWidth, m_tileHeight);
-
-            QPainter p(&temp);
-                p.setCompositionMode(QPainter::CompositionMode_Source);
-                p.drawPixmap(0, 0, m_tileWidth, m_tileHeight,
-                        pix, j * m_tileWidth, i * m_tileHeight, m_tileWidth, m_tileHeight);
-            p.end();
-
-            addTile(temp);
-        }
-    }
-
-    generateOffsets();
-    drawPixmap();
-}
-
 QPixmap Layer::generatePartialPixmap(int startPoint, int size)
 {
-    QPixmap temp(m_tileWidth * size, boundingRect().height());
 
-    QPainter p(&temp);
-        int i, j;
-        int index = 0;
-        for (i = 0; i < m_numRows; i++) {
-            for (j = 0; j < size; j++) {
-                index = ((i * m_totalColumns) + (j + startPoint));
+    if (!imageReader.canRead())
+        imageReader.setFileName(m_source); // XXX me doesn't like this
 
-                p.drawPixmap(j * m_tileWidth, i * m_tileHeight, getTile(index));
+    imageReader.setClipRect(QRect(startPoint, 0,
+                                  size,
+                                  boundingRect().height() * 1));
 
-                // just draw a grid
-                // XXX chech the possibility of drawn it only on a debug mode
-                if (m_drawGrid) {
-                    p.setPen(m_gridColor);
-                    p.drawRect(j * m_tileWidth, i * m_tileHeight, m_tileWidth, m_tileHeight);
-                }
-            }
-        }
-    p.end();
-
-    return temp;
+    return QPixmap::fromImageReader(&imageReader);
 }
 
 void Layer::drawPixmap()
@@ -409,23 +246,38 @@ void Layer::drawPixmap()
     if (m_currentImage)
         delete m_currentImage;
 
-    m_currentImage = new QImage(boundingRect().width() * m_areaToDraw, boundingRect().height(), QImage::Format_ARGB32_Premultiplied);
+    // XXX if image width < boundingRect.width?
+
+    m_currentImage = new QImage(boundingRect().width() * 2, boundingRect().height(), QImage::Format_ARGB32_Premultiplied);///
+    m_currentImage->fill(Qt::transparent);
 
     QPainter p(m_currentImage);
         int xPoint = 0;
         for (int i = 0; i < m_offsets[m_columnOffset].size(); i++) {
             Offsets offset = m_offsets[m_columnOffset].at(i);
 
-            QPixmap pix = generatePartialPixmap(offset.point(), offset.size());
-            p.drawPixmap(xPoint, 0, pix);
+            QPixmap pix;
+            if (offset.mirror()) {
+                int realPoint;
+                if (offset.point() == 0)
+                    realPoint = m_imageWidth - offset.point() - offset.size();
+                else
+                    realPoint = m_imageWidth - (offset.point() - m_imageWidth) - offset.size();
+
+                pix = generatePartialPixmap(realPoint, offset.size());
+                p.drawPixmap(xPoint, 0, pix.width(), pix.height(),
+                             pix.transformed(QTransform().scale(-1, 1), Qt::FastTransformation));
+            } else {
+                pix = generatePartialPixmap(offset.point(), offset.size());
+                p.drawPixmap(xPoint, 0, pix);
+            }
 
             xPoint += pix.width();
-            m_latestPoint = offset.point();
         }
-
-        if (m_direction == Quasi::ForwardDirection)
-            m_columnOffset = (m_columnOffset - 1 < 0) ? m_offsets.size() - 1 : m_columnOffset - 1;
-        else
-            m_columnOffset = (m_columnOffset + 1) % m_offsets.size();
     p.end();
+
+    if (m_direction == Quasi::ForwardDirection)
+        m_columnOffset = (m_columnOffset - 1 < 0) ? m_offsets.size() - 1 : m_columnOffset - 1;
+    else
+        m_columnOffset = (m_columnOffset + 1) % m_offsets.size();
 }

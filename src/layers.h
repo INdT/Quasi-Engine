@@ -38,14 +38,8 @@ class Layers : public Entity
 #else
     Q_PROPERTY(QDeclarativeListProperty<Layer> layers READ layers)
 #endif
-    Q_PROPERTY(Quasi::DrawType drawType READ drawType WRITE setDrawType)
-    Q_PROPERTY(int tileHeight READ tileHeight WRITE setTileHeight)
-    Q_PROPERTY(int tileWidth READ tileWidth WRITE setTileWidth)
     Q_PROPERTY(qreal xOffset READ xOffset WRITE setXOffset NOTIFY xOffsetChanged)
     Q_PROPERTY(qreal yOffset READ yOffset WRITE setYOffset NOTIFY yOffsetChanged)
-
-    Q_PROPERTY(bool drawGrid READ drawGrid WRITE setDrawGrid)
-    Q_PROPERTY(QColor gridColor READ gridColor WRITE setGridColor)
 
 public:
     Layers(Scene *parent = 0);
@@ -57,26 +51,11 @@ public:
     QDeclarativeListProperty<Layer> layers() const;
 #endif
 
-    void setDrawType(Quasi::DrawType drawType);
-    Quasi::DrawType drawType() const;
-
-    int tileHeight() const { return m_tileHeight; }
-    void setTileHeight(const int &tileHeight);
-
-    int tileWidth() const { return m_tileWidth; }
-    void setTileWidth(const int &tileWidth);
-
     qreal xOffset() const { return m_xOffset; }
     void setXOffset(const qreal &xOffset);
 
     qreal yOffset() const { return m_yOffset; }
     void setYOffset(const qreal &yOffset);
-
-    bool drawGrid() const { return m_drawGrid; }
-    void setDrawGrid(bool draw);
-
-    QColor gridColor() const { return m_gridColor; }
-    void setGridColor(const QColor &color);
 
     void update(const int &delta);
 
@@ -96,18 +75,10 @@ private:
     static void append_layer(QDeclarativeListProperty<Layer> *list, Layer *layer);
 #endif
 
-    int m_tileWidth;
-    int m_tileHeight;
-    int m_totalColumns;
-    int m_totalRows;
-    Quasi::DrawType m_drawType;
     Layer::LayerList m_layers;
 
     qreal m_xOffset;
     qreal m_yOffset;
-
-    bool m_drawGrid;
-    QColor m_gridColor;
 };
 
 #endif /* _LAYERS_H_ */
