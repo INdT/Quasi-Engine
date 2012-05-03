@@ -51,10 +51,6 @@ QuasiGame {
 
                 // TODO: make 'horizontalStep' a property from QuasiLayers, not QuasiAnimatedLayer?
                 anchors.fill: parent
-                drawType: Quasi.TiledDrawType // XXX: There are some problems with Quasi.PLaneDrawType
-                tileWidth: 40
-                tileHeight: 40
-                //drawGrid: true // nice for debug; default: false
 
                 property variant direction: Quasi.BackwardDirection
 
@@ -114,19 +110,21 @@ QuasiGame {
                 Image {
                     id: shipImage
 
-                    source: ":/images/rocketship.png"
+                    source: "qrc:/images/rocketship.png"
                 }
 
                 focus: true
                 Keys.onPressed: {
                     switch (event.key) {
-                        case Qt.Key_Left:
+                        case Qt.Key_Left: {
                             toLeft();
                             ship.x -= 5;
+                            }
                             break;
-                        case Qt.Key_Right:
+                        case Qt.Key_Right: {
                             toRight();
                             ship.x += 5;
+                            }
                             break;
                         case Qt.Key_Down:
                             ship.y += 5;

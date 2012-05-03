@@ -36,7 +36,6 @@ QuasiGame {
         entities: [
             QuasiLayers {
                 anchors.fill: parent
-                drawType: Quasi.PlaneDrawType // draiwing type; PlaneDrawType or TiledDrawType (default)
 
                 layers: [
                     QuasiStaticLayer {
@@ -95,9 +94,3 @@ QuasiGame {
         }
     }
 }
-
-
-
-
-
-

@@ -36,11 +36,6 @@ QuasiGame {
         entities: [
             QuasiLayers {
                 anchors.fill: parent
-                drawType: Quasi.TiledDrawType // draiwing type; PlaneDrawType or TiledDrawType (default)
-                tileWidth: 32 // width of each tile when using 'TiledDrawType' as drawing type; default: 32
-                tileHeight: 32 // height of each tile when using 'TiledDrawType' as drawing type; default: 32
-                //drawGrid: true // nice for debug; default: false
-                //gridColor: "green" // nice for debug; default: red
 
                 layers: [
                     QuasiAnimatedLayer {

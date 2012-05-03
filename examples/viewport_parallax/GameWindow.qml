@@ -50,7 +50,6 @@ QuasiGame {
         entities: [
             QuasiLayers {
                 anchors.fill: parent
-                drawType: Quasi.PlaneDrawType
 
                 layers: [
                     QuasiStaticLayer {
