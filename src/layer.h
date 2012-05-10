@@ -86,6 +86,8 @@ class Layer: public QuasiPaintedItem
     Q_PROPERTY(Quasi::Ordering order READ order WRITE setOrder)
     Q_PROPERTY(Quasi::LayerType layerType READ layerType WRITE setLayerType NOTIFY layerTypeChanged)
     Q_PROPERTY(Quasi::LayerDirection direction READ direction WRITE setDirection NOTIFY directionChanged)
+    // XXX expose on Layers only
+    Q_PROPERTY(qreal percentLoading READ percentLoading WRITE setPercentLoading)
 
 public:
     typedef QList<Layer *> LayerList; //! A layer list based on QList
@@ -96,10 +98,10 @@ public:
     void setSource(const QString &source);
     QString source() const;
 
-    void setFactor(qreal factor);
+    void setFactor(const qreal &factor);
     qreal factor() const;
 
-    void setOrder(Quasi::Ordering order);
+    void setOrder(const Quasi::Ordering &order);
     Quasi::Ordering order() const;
 
     Quasi::LayerType layerType() const { return m_type; };
@@ -107,6 +109,9 @@ public:
 
     Quasi::LayerDirection direction() const { return m_direction; };
     void setDirection(const Quasi::LayerDirection &direction);
+
+    void setPercentLoading(const qreal &percent);
+    qreal percentLoading() const;
 
     int count() const;
 
@@ -126,6 +131,7 @@ protected:
 private:
     QImageReader imageReader;
     QPixmap generatePartialPixmap(int startPoint, int size);
+    void generateFirstImage(const QPoint &pos = QPoint(0, 0));// TODO maybe this function will be another one
     void generateOffsets();
 
     QList<Offsets::OffsetsList> m_offsets;
@@ -136,6 +142,7 @@ private:
     int m_columnOffset;
     int m_imageWidth;
     int m_imageHeight;
+    qreal m_percentLoading;
 };
 
 #endif /* _LAYER */

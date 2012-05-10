@@ -36,6 +36,7 @@ Layer::Layer(QuasiDeclarativeItem *parent)
     , m_columnOffset(0)
     , m_imageWidth(0)
     , m_imageHeight(0)
+    , m_percentLoading(0.1)
 {
 #if QT_VERSION >= 0x050000
     setZ(Quasi::InteractionLayerOrdering_01);
@@ -94,7 +95,7 @@ void Layer::setDirection(const Quasi::LayerDirection &direction)
 /*!
  * \param factor the factor value
  */
-void Layer::setFactor(qreal factor)
+void Layer::setFactor(const qreal &factor)
 {
     if (m_factor != factor)
         m_factor = factor;
@@ -113,7 +114,7 @@ qreal Layer::factor() const
 /*!
  * \param order the layer z order
  */
-void Layer::setOrder(Quasi::Ordering order)
+void Layer::setOrder(const Quasi::Ordering &order)
 {
 #if QT_VERSION >= 0x050000
     if (z() != order)
@@ -146,9 +147,21 @@ void Layer::setLayerType(const Quasi::LayerType &type)
     }
 }
 
+void Layer::setPercentLoading(const qreal &percent)
+{
+    if (m_percentLoading != percent)
+        m_percentLoading = qBound(0.0, percent, 1.0);
+}
+
+qreal Layer::percentLoading() const
+{
+    return m_percentLoading;
+}
+
 // XXX
 void Layer::initialize()
 {
+    generateFirstImage();
     generateOffsets();
     drawPixmap();
 }
@@ -224,6 +237,118 @@ void Layer::generateOffsets()
         }
     }
 }
+
+///
+void Layer::generateFirstImage(const QPoint &pos)
+{
+
+    if (!imageReader.canRead())
+        imageReader.setFileName(m_source); // XXX me doesn't like this
+
+    int readerWidth = imageReader.size().width();
+    int readerHeight = imageReader.size().height();
+
+    int hDelta = boundingRect().width() * m_percentLoading;
+    int vDelta = boundingRect().height() * m_percentLoading;
+
+    // if want to use the same governor
+    /*if (hDelta > vDelta)
+        vDelta = hDelta;
+    else
+        hDelta = vDelta;*/
+
+    // for viewport
+    int realX = pos.x(); // 10546
+    int realY = pos.y(); // 800
+    //int realX = boundingRect().width() / 2;
+    //int realY = boundingRect().height() / 2;
+    int realW = boundingRect().width();
+    int realH = boundingRect().height();
+    // for extra border
+    int newX = realX - hDelta;
+    int newY = realY - vDelta;
+    int newW = realW + (2 * hDelta);
+    int newH = realH + (2 * vDelta);
+
+    bool bigW = false;
+    bool bigH = false;
+    if (newX + newW > readerWidth) {
+        newW = readerWidth - newX;
+        bigW = true;
+    }
+    if (newY + newH > readerHeight) {
+        bigH = true;
+        newH = readerHeight - newY;
+    }
+    // if infinite
+    /*if (realX <= 0)
+        newX = 0;
+    if (realY <= 0)
+        newY = 0;*/
+
+    /*
+    qDebug() << QString("realX: %1 realY: %2 realW: %3 realH: %4")
+                        .arg(realX).arg(realY).arg(realW).arg(realH);///
+    qDebug() << QString("newX: %1 newY: %2 newW: %3 newH: %4")
+                        .arg(newX).arg(newY).arg(newW).arg(newH);///
+    qDebug() << QString("hDelta: %1 vDelta: %2").arg(hDelta).arg(vDelta);///
+    */
+
+    imageReader.setClipRect(QRect(newX, newY, newW, newH));
+
+    QPixmap pix(realW + (2 * hDelta), realH + (2 * vDelta));
+    QPainter p(&pix);
+        p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
+        //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/CUEN.png");///
+
+        if (newX < 0 && newY < 0) {
+            // top-left
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(readerWidth + newX, readerHeight + newY, hDelta, vDelta));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen1.png");///
+            p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
+
+            // top-right
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(0, readerHeight + newY, newW, vDelta));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
+            p.drawPixmap(-newX, 0, QPixmap::fromImageReader(&imageReader));
+
+            // bottom-left
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(readerWidth + newX, 0, hDelta, newH));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen3.png");///
+            p.drawPixmap(0, -newY, QPixmap::fromImageReader(&imageReader));
+        } else if (bigW && bigH) {
+            // bottom-right
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(0, 0, realW + (2 * hDelta) - newW, realH + (2 * vDelta) - newH));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen1.png");///
+            p.drawPixmap(newW, newH, QPixmap::fromImageReader(&imageReader));
+
+            // top-right
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(0, newY, realW + (2 * hDelta) - newW, readerHeight - newY));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
+            p.drawPixmap(readerWidth - newX, 0, QPixmap::fromImageReader(&imageReader));
+
+            // bottom-left
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(newX, 0, readerWidth - newX, realH + (2 * vDelta) - newH));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen3.png");///
+            p.drawPixmap(0, readerHeight - newY, QPixmap::fromImageReader(&imageReader));
+        }
+
+        QColor c(Qt::red);
+        c.setAlphaF(0.5);
+        p.fillRect(hDelta, vDelta, realW, realH, c);///
+    p.end();
+
+    //qDebug() << QString("pixW: %1 pixH: %2").arg(pix.width()).arg(pix.height());///
+
+    pix.save(QString("/tmp/ABC/image%1.png").arg(realX));
+}
+///
 
 QPixmap Layer::generatePartialPixmap(int startPoint, int size)
 {
