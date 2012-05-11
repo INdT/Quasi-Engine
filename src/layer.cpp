@@ -161,7 +161,18 @@ qreal Layer::percentLoading() const
 // XXX
 void Layer::initialize()
 {
-    generateFirstImage();
+    //generateFirstImage(QPoint(10546, 0)); // X > x + w
+    //generateFirstImage(QPoint(0, 800)); // Y > y + h XXX
+    generateFirstImage(QPoint(10000, 0)); // X > x + w XXX
+    //generateFirstImage(QPoint(150, 700)); // Y > y + h
+    //generateFirstImage(QPoint(10000, 150)); // X > x + w
+    //generateFirstImage(QPoint(10, 40)); // X < 0
+    //generateFirstImage(QPoint(40, 40)); // X < 0
+    //generateFirstImage(QPoint(160, 30)); // Y < 0
+    //generateFirstImage(QPoint(80, 10)); // Y < 0
+    //generateFirstImage(QPoint(10546, 800)); // x = w && y = h
+    //generateFirstImage(QPoint(10000, 700)); // X > x + w && Y > y + h
+    //generateFirstImage(); // 0, 0
     generateOffsets();
     drawPixmap();
 }
@@ -301,7 +312,8 @@ void Layer::generateFirstImage(const QPoint &pos)
         p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
         //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/CUEN.png");///
 
-        if (newX < 0 && newY < 0) {
+        if (newX < 0 && newY < 0) { // XXX free-for-all
+            qDebug() << "CUEN1";
             // top-left
             imageReader.setFileName(m_source);
             imageReader.setClipRect(QRect(readerWidth + newX, readerHeight + newY, hDelta, vDelta));
@@ -319,7 +331,22 @@ void Layer::generateFirstImage(const QPoint &pos)
             imageReader.setClipRect(QRect(readerWidth + newX, 0, hDelta, newH));
             //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen3.png");///
             p.drawPixmap(0, -newY, QPixmap::fromImageReader(&imageReader));
-        } else if (bigW && bigH) {
+        } else if (newX < 0 && newY >= 0) { // XXX fixed H
+            qDebug() << "CUEN2";
+            // left
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(readerWidth + newX, newY, -newX, newH));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen3.png");///
+            p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
+        } else if (newY < 0 && newX >= 0 && !bigW) { // XXX fixed V
+            qDebug() << "CUEN3";
+            // top
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(newX, readerHeight + newY, newW, -newY));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
+            p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
+        } else if (bigW && bigH) { // free-for-all
+            qDebug() << "CUEN4";
             // bottom-right
             imageReader.setFileName(m_source);
             imageReader.setClipRect(QRect(0, 0, realW + (2 * hDelta) - newW, realH + (2 * vDelta) - newH));
@@ -337,6 +364,39 @@ void Layer::generateFirstImage(const QPoint &pos)
             imageReader.setClipRect(QRect(newX, 0, readerWidth - newX, realH + (2 * vDelta) - newH));
             //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen3.png");///
             p.drawPixmap(0, readerHeight - newY, QPixmap::fromImageReader(&imageReader));
+        } else if (bigW && !bigH && newY >= 0) { // free-for-all
+            qDebug() << "CUEN5";
+            // right
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(0, newY, realW + (2 * hDelta) - newW, newH));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
+            p.drawPixmap(readerWidth - newX, 0, QPixmap::fromImageReader(&imageReader));
+        } else if (!bigW && bigH) { // free-for-all
+            qDebug() << "CUEN6";
+            // bottom
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(newX, 0, newW, realH + (2 * vDelta) - newH));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
+            p.drawPixmap(0, newH, QPixmap::fromImageReader(&imageReader));
+        } else if (bigW && !bigH && newY < 0) { // free-for-all
+            qDebug() << "CUEN7";
+            // top-left
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(newX, readerHeight + newY, hDelta, vDelta));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen1.png");///
+            p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
+
+            // top-right
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(0, readerHeight + newY, realW + (2 * hDelta) - newW, vDelta));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
+            p.drawPixmap(readerWidth - newX, 0, QPixmap::fromImageReader(&imageReader));
+
+            // bottom-right
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(0, 0, realW + (2 * hDelta) - newW, newH - vDelta));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
+            p.drawPixmap(readerWidth - newX, -newY, QPixmap::fromImageReader(&imageReader));
         }
 
         QColor c(Qt::red);
