@@ -161,18 +161,18 @@ qreal Layer::percentLoading() const
 // XXX
 void Layer::initialize()
 {
-    //generateFirstImage(QPoint(10546, 0)); // X > x + w
-    //generateFirstImage(QPoint(0, 800)); // Y > y + h XXX
-    generateFirstImage(QPoint(10000, 0)); // X > x + w XXX
-    //generateFirstImage(QPoint(150, 700)); // Y > y + h
-    //generateFirstImage(QPoint(10000, 150)); // X > x + w
-    //generateFirstImage(QPoint(10, 40)); // X < 0
-    //generateFirstImage(QPoint(40, 40)); // X < 0
-    //generateFirstImage(QPoint(160, 30)); // Y < 0
-    //generateFirstImage(QPoint(80, 10)); // Y < 0
-    //generateFirstImage(QPoint(10546, 800)); // x = w && y = h
-    //generateFirstImage(QPoint(10000, 700)); // X > x + w && Y > y + h
-    //generateFirstImage(); // 0, 0
+    //generateFirstImage(QPoint(10546, 0)); // X > x + w CUEN8
+    //generateFirstImage(QPoint(0, 800)); // Y > y + h CUEN6
+    //generateFirstImage(QPoint(10000, 0)); // X > x + w CUEN8
+    //generateFirstImage(QPoint(150, 700)); // Y > y + h CUEN6
+    //generateFirstImage(QPoint(10000, 150)); // X > x + w CUEN5
+    //generateFirstImage(QPoint(10, 40)); // X < 0 CUEN2
+    //generateFirstImage(QPoint(40, 40)); // X < 0 CUEN2
+    //generateFirstImage(QPoint(160, 30)); // Y < 0 CUEN3
+    //generateFirstImage(QPoint(80, 10)); // Y < 0 CUEN3
+    //generateFirstImage(QPoint(10546, 800)); // x = w && y = h CUEN4
+    //generateFirstImage(QPoint(10000, 700)); // X > x + w && Y > y + h CUEN4
+    generateFirstImage(); // 0, 0 CUEN1
     generateOffsets();
     drawPixmap();
 }
@@ -271,8 +271,6 @@ void Layer::generateFirstImage(const QPoint &pos)
     // for viewport
     int realX = pos.x(); // 10546
     int realY = pos.y(); // 800
-    //int realX = boundingRect().width() / 2;
-    //int realY = boundingRect().height() / 2;
     int realW = boundingRect().width();
     int realH = boundingRect().height();
     // for extra border
@@ -297,20 +295,12 @@ void Layer::generateFirstImage(const QPoint &pos)
     if (realY <= 0)
         newY = 0;*/
 
-    /*
-    qDebug() << QString("realX: %1 realY: %2 realW: %3 realH: %4")
-                        .arg(realX).arg(realY).arg(realW).arg(realH);///
-    qDebug() << QString("newX: %1 newY: %2 newW: %3 newH: %4")
-                        .arg(newX).arg(newY).arg(newW).arg(newH);///
-    qDebug() << QString("hDelta: %1 vDelta: %2").arg(hDelta).arg(vDelta);///
-    */
-
     imageReader.setClipRect(QRect(newX, newY, newW, newH));
 
     QPixmap pix(realW + (2 * hDelta), realH + (2 * vDelta));
     QPainter p(&pix);
-        p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
         //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/CUEN.png");///
+        p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
 
         if (newX < 0 && newY < 0) { // XXX free-for-all
             qDebug() << "CUEN1";
@@ -331,7 +321,7 @@ void Layer::generateFirstImage(const QPoint &pos)
             imageReader.setClipRect(QRect(readerWidth + newX, 0, hDelta, newH));
             //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen3.png");///
             p.drawPixmap(0, -newY, QPixmap::fromImageReader(&imageReader));
-        } else if (newX < 0 && newY >= 0) { // XXX fixed H
+        } else if (newX < 0 && newY >= 0 && !bigH) { // XXX fixed H
             qDebug() << "CUEN2";
             // left
             imageReader.setFileName(m_source);
@@ -371,18 +361,37 @@ void Layer::generateFirstImage(const QPoint &pos)
             imageReader.setClipRect(QRect(0, newY, realW + (2 * hDelta) - newW, newH));
             //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
             p.drawPixmap(readerWidth - newX, 0, QPixmap::fromImageReader(&imageReader));
-        } else if (!bigW && bigH) { // free-for-all
+        } else if (!bigW && bigH && newX < 0) { // free-for-all
             qDebug() << "CUEN6";
+            // top-left
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(readerWidth + newX, newY, hDelta, vDelta));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen1.png");///
+            p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
+
+            // bottom-left
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(readerWidth + newX, 0, hDelta, realH + (2 * vDelta) - newH));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen3.png");///
+            p.drawPixmap(0, newH, QPixmap::fromImageReader(&imageReader));
+
+            // bottom-right
+            imageReader.setFileName(m_source);
+            imageReader.setClipRect(QRect(0, 0, newW - hDelta, realH + (2 * vDelta) - newH));
+            //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
+            p.drawPixmap(-newX, newH, QPixmap::fromImageReader(&imageReader));
+        } else if (!bigW && bigH) { // free-for-all
+            qDebug() << "CUEN7";
             // bottom
             imageReader.setFileName(m_source);
             imageReader.setClipRect(QRect(newX, 0, newW, realH + (2 * vDelta) - newH));
             //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen2.png");///
             p.drawPixmap(0, newH, QPixmap::fromImageReader(&imageReader));
         } else if (bigW && !bigH && newY < 0) { // free-for-all
-            qDebug() << "CUEN7";
+            qDebug() << "CUEN8";
             // top-left
             imageReader.setFileName(m_source);
-            imageReader.setClipRect(QRect(newX, readerHeight + newY, hDelta, vDelta));
+            imageReader.setClipRect(QRect(newX, readerHeight + newY, newW, vDelta));
             //QPixmap::fromImageReader(&imageReader).save("/tmp/ABC/cuen1.png");///
             p.drawPixmap(0, 0, QPixmap::fromImageReader(&imageReader));
 
@@ -406,7 +415,7 @@ void Layer::generateFirstImage(const QPoint &pos)
 
     //qDebug() << QString("pixW: %1 pixH: %2").arg(pix.width()).arg(pix.height());///
 
-    pix.save(QString("/tmp/ABC/image%1.png").arg(realX));
+    //pix.save(QString("/tmp/ABC/image%1.png").arg(realX));
 }
 ///
 
