@@ -252,7 +252,7 @@ void Layer::generateOffsets()
 ///
 void Layer::generateFirstImage(const QPoint &pos)
 {
-
+    // XXX this function needs improvements
     if (!imageReader.canRead())
         imageReader.setFileName(m_source); // XXX me doesn't like this
 
