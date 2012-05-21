@@ -17,6 +17,8 @@ INCLUDEPATH += .
 INCLUDEPATH += $$BOX2DPATH/include
 LIBS += -L$$BOX2DPATH/lib -lBox2D
 
+include($$PWD/tmx/tmx.pri)
+
 HEADERS += quasideclarativeitem.h \
            quasipainteditem.h \
            entity.h \
