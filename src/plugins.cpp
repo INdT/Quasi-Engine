@@ -22,20 +22,21 @@
 #include "plugins.h"
 
 #include "animatedlayer.h"
+#include "behavior.h"
 #include "box2ddistancejointitem.h"
 #include "box2ditem.h"
 #include "box2dscene.h"
 #include "box2dmousejointitem.h"
+#include "game.h"
 #include "entity.h"
 #include "layers.h"
 #include "scene.h"
+#include "scriptbehavior.h"
 #include "spriteanimation.h"
 #include "sprite.h"
 #include "staticlayer.h"
-#include "game.h"
 #include "viewport.h"
-#include "behavior.h"
-#include "scriptbehavior.h"
+#include "tiledscene.h"
 
 void Plugins::registerTypes(const char *uri)
 {
@@ -59,6 +60,7 @@ void Plugins::registerTypes(const char *uri)
     qmlRegisterType<AnimatedLayer>("QuasiGame", 1, 0, "QuasiAnimatedLayer");
     qmlRegisterType<Viewport>("QuasiGame", 1, 0, "QuasiViewport");
     qmlRegisterType<ScriptBehavior>("QuasiGame", 1, 0, "QuasiScriptBehavior");
+    qmlRegisterType<TiledScene>("QuasiGame", 1, 0, "QuasiTiledScene");
 }
 
 Q_EXPORT_PLUGIN2(QuasiGame, Plugins);

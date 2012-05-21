@@ -45,7 +45,8 @@ HEADERS += quasideclarativeitem.h \
            box2ddebugdrawitem.h \
            enums.h \
            behavior.h \
-           scriptbehavior.h
+           scriptbehavior.h \
+           tiledscene.h
 
 SOURCES += entity.cpp \
            scene.cpp \
@@ -69,7 +70,8 @@ SOURCES += entity.cpp \
            viewport.cpp \
            box2ddebugdrawitem.cpp \
            behavior.cpp \
-           scriptbehavior.cpp
+           scriptbehavior.cpp \
+           tiledscene.cpp
 
 QMAKE_POST_LINK = $$QMAKE_COPY $$PWD/qmldir $$OUT_PWD/imports/QuasiGame
 

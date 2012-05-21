@@ -13,4 +13,5 @@ SUBDIRS += animated_layer \
            updateInterval \
            manysprites \
            viewport_parallax \
-	   behaviorchange
+           behaviorchange \
+           tiledscene
