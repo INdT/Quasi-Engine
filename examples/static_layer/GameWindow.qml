@@ -41,7 +41,9 @@ QuasiGame {
                     QuasiStaticLayer {
                         id: layer
 
-                        source: ":/not_so_large.png" // image source
+                        source: "CC.png" // image source
+                        //source: "BB.png" // image source
+                        //source: ":/not_so_large.png" // image source
                         //factor: 1.0 // updating factor of this layer, useful when using multiple layers; default: 1.0
                         /* layer ordering, set how the layers will be presented when rendering
                          * possible values, splited in three main areas:
