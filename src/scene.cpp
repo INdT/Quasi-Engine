@@ -24,12 +24,18 @@
 #include "game.h"
 #include "layers.h"
 
+/**/
+#include <QDebug>
+/**/
 #if QT_VERSION >= 0x050000
 void Scene::append_gameItem(QQmlListProperty<Entity> *list, Entity *gameItem)
 #else
 void Scene::append_gameItem(QDeclarativeListProperty<Entity> *list, Entity *gameItem)
 #endif
 {
+    /**/
+    qDebug() << "opa";
+    /**/
     Scene *scene = qobject_cast<Scene *>(list->object);
     if (scene) {
         gameItem->setScene(scene);
@@ -51,7 +57,28 @@ Scene::Scene(Game *parent)
     , m_debug(false)
 {
     setVisible(false);
+    /**/
+    Layers *abc = new Layers();
+    qDebug() << "Item to append:" << abc;
+    addEntity(dynamic_cast<Entity *>(abc));
+    /**/
 }
+
+/**/
+void Scene::addEntity(Entity *gameItem)
+{
+#if QT_VERSION >= 0x050000
+    QQmlListReference ref(this, "entities");
+#else
+    QDeclarativeListReference ref(this, "entities");
+#endif
+
+    if (ref.canAppend()) {
+        qDebug() << ref.append(dynamic_cast<Entity *>(gameItem));
+    }
+    qDebug() << "Items on list:" << m_entities;
+}
+/**/
 
 #if QT_VERSION >= 0x050000
 QQmlListProperty<Entity> Scene::entities() const

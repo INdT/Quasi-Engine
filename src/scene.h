@@ -69,6 +69,10 @@ public:
     bool debug() const;
     void setDebug(const bool &debug);
 
+    /**/
+    void addEntity(Entity *gameItem);
+    /**/
+
     Q_INVOKABLE QList<QObject *> collidedItems(Entity *gameItem) const;
 
     virtual void update(const int &delta);
