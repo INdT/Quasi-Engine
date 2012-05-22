@@ -3,6 +3,7 @@ CONFIG += qt plugin
 
 contains(QT_VERSION, ^5.*) QT += quick
 else: QT += declarative
+QT += multimedia
 
 TARGET = plugins
 TARGETPATH = QuasiGame
@@ -45,7 +46,9 @@ HEADERS += quasideclarativeitem.h \
            behavior.h \
            scriptbehavior.h \
            box2dcontact.h \
-           box2dcontactlistener.h
+           box2dcontactlistener.h \
+           mixer.h \
+           audio.h
 
 SOURCES += entity.cpp \
            scene.cpp \
@@ -71,7 +74,9 @@ SOURCES += entity.cpp \
            behavior.cpp \
            scriptbehavior.cpp \
            box2dcontact.cpp \
-           box2dcontactlistener.cpp
+           box2dcontactlistener.cpp \
+           mixer.cpp \
+           audio.cpp
 
 QMAKE_POST_LINK = $$QMAKE_COPY $$PWD/qmldir $$OUT_PWD/imports/QuasiGame
 

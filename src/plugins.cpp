@@ -37,6 +37,8 @@
 #include "viewport.h"
 #include "behavior.h"
 #include "scriptbehavior.h"
+#include "mixer.h"
+#include "audio.h"
 
 void Plugins::registerTypes(const char *uri)
 {
@@ -61,6 +63,8 @@ void Plugins::registerTypes(const char *uri)
     qmlRegisterType<AnimatedLayer>("QuasiGame", 1, 0, "QuasiAnimatedLayer");
     qmlRegisterType<Viewport>("QuasiGame", 1, 0, "QuasiViewport");
     qmlRegisterType<ScriptBehavior>("QuasiGame", 1, 0, "QuasiScriptBehavior");
+    qmlRegisterType<Audio>("QuasiGame", 1, 0, "QuasiAudio");
+    qmlRegisterType<Mixer>("QuasiGame", 1, 0, "QuasiMixer");
 }
 
 Q_EXPORT_PLUGIN2(QuasiGame, Plugins);
