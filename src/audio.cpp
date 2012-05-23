@@ -168,6 +168,7 @@ void Audio::internalPlay(const bool &loop)
     }
 
     // ok, jst play it
+    stop();
     m_audioOutput = new QAudioOutput(m_deviceInfo, m_audioFormat);
 
     connect(m_audioOutput, SIGNAL(stateChanged(QAudio::State)),
