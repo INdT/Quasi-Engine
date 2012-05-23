@@ -1,6 +1,9 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file>GameWindow.qml</file>
+    <file>Button.qml</file>
     <file>cuen.wav</file>
+    <file>tumdumdum.wav</file>
+    <file>bg.wav</file>
 </qresource>
 </RCC>

@@ -22,20 +22,203 @@
 QuasiGame {
     id: game
 
-    width: 400
+    width: 401
     height: 250
+
+    Button {
+        id: sc
+
+        anchors {
+            top: parent.top
+            left: parent.left
+        }
+
+        width: 100
+        height: 80
+
+        text: "single cuen"
+
+        onReleased: {
+            if (mouse.button == Qt.LeftButton)
+                cuen.play();
+            else if (mouse.button == Qt.RightButton)
+                cuen.stop();
+            else if (mouse.button == Qt.MiddleButton)
+                cuen.pause();
+        }
+    }
+    Button {
+        id: lc
+
+        anchors {
+            top: parent.top
+            left: sc.right
+        }
+        width: 100
+        height: 80
+
+        text: "loop cuen"
+
+        onReleased: {
+            if (mouse.button == Qt.LeftButton)
+                cuen.playLoop();
+            else if (mouse.button == Qt.RightButton)
+                cuen.stop();
+            else if (mouse.button == Qt.MiddleButton)
+                cuen.pause();
+        }
+    }
+
+    Button {
+        id: st
+
+        anchors {
+            top: parent.top
+            left: lc.right
+        }
+
+        width: 100
+        height: 80
+
+        text: "single tum"
+
+        onReleased: {
+            if (mouse.button == Qt.LeftButton)
+                tumdumdum.play();
+            else if (mouse.button == Qt.RightButton)
+                tumdumdum.stop();
+            else if (mouse.button == Qt.MiddleButton)
+                tumdumdum.pause();
+        }
+    }
+    Button {
+        id: lt
+
+        anchors {
+            top: parent.top
+            left: st.right
+        }
+        width: 100
+        height: 80
+
+        text: "loop tum"
+
+        onReleased: {
+            if (mouse.button == Qt.LeftButton)
+                tumdumdum.playLoop();
+            else if (mouse.button == Qt.RightButton)
+                tumdumdum.stop();
+            else if (mouse.button == Qt.MiddleButton)
+                tumdumdum.pause();
+        }
+    }
+
+    Button {
+        id: volumeUp
+
+        anchors {
+            top: sc.bottom
+            left: parent.left
+        }
+        width: 100
+        height: 80
+
+        text: "vol\n+"
+
+        onReleased: {
+            mixer.volume += 0.1;
+        }
+    }
+
+    Button {
+        id: sb
+
+        anchors {
+            top: lc.bottom
+            left: volumeUp.right
+        }
+        width: 100
+        height: 80
+
+        text: "single bg"
+
+        onReleased: {
+            if (mouse.button == Qt.LeftButton)
+                bg.play();
+            else if (mouse.button == Qt.RightButton)
+                bg.stop();
+            else if (mouse.button == Qt.MiddleButton)
+                bg.pause();
+        }
+    }
+    Button {
+        id: lb
+
+        anchors {
+            top: lc.bottom
+            left: sb.right
+        }
+        width: 100
+        height: 80
+
+        text: "loop bg"
+
+        onReleased: {
+            if (mouse.button == Qt.LeftButton)
+                bg.playLoop();
+            else if (mouse.button == Qt.RightButton)
+                bg.stop();
+            else if (mouse.button == Qt.MiddleButton)
+                bg.pause();
+        }
+    }
+
+    Button {
+        id: volumeDown
+
+        anchors {
+            top: lt.bottom
+            left: lb.right
+        }
+        width: 100
+        height: 80
+
+        text: "vol\n-"
+
+        onReleased: {
+            mixer.volume -= 0.1;
+        }
+    }
 
     QuasiMixer {
         id: mixer
     }
 
     QuasiAudio {
-        id: audio
+        id: cuen
 
         source: ":/cuen.wav"
         mixer: mixer
     }
+
+    QuasiAudio {
+        id: tumdumdum
+
+        source: ":/tumdumdum.wav"
+        mixer: mixer
+    }
+
+    QuasiAudio {
+        id: bg
+
+        source: ":/bg.wav"
+        mixer: mixer
+    }
+
     Component.onCompleted: {
-        audio.playLoop();
+        console.log("\n\nInstructions:");
+        console.log("\tLeftClick: play");
+        console.log("\tMiddleClick: pause/unpause");
+        console.log("\tRigthClick: stop");
     }
 }
