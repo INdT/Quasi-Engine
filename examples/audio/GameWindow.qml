@@ -20,173 +20,160 @@
  */
 
 QuasiGame {
-    id: game
+    id: panel
 
     width: 401
-    height: 250
+    height: 241
 
-    Button {
-        id: sc
+    Grid {
+        id: grid
 
-        anchors {
-            top: parent.top
-            left: parent.left
+        columns: 4
+        rows: 3
+
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
+
+            text: "single cuen"
+
+            onReleased: {
+                if (mouse.button == Qt.LeftButton)
+                    cuen.play();
+                else if (mouse.button == Qt.RightButton)
+                    cuen.stop();
+                else if (mouse.button == Qt.MiddleButton)
+                    cuen.pause();
+            }
+        }
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
+
+            text: "loop cuen"
+
+            onReleased: {
+                if (mouse.button == Qt.LeftButton)
+                    cuen.playLoop();
+                else if (mouse.button == Qt.RightButton)
+                    cuen.stop();
+                else if (mouse.button == Qt.MiddleButton)
+                    cuen.pause();
+            }
         }
 
-        width: 100
-        height: 80
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
 
-        text: "single cuen"
+            text: "single tum"
 
-        onReleased: {
-            if (mouse.button == Qt.LeftButton)
-                cuen.play();
-            else if (mouse.button == Qt.RightButton)
-                cuen.stop();
-            else if (mouse.button == Qt.MiddleButton)
-                cuen.pause();
+            onReleased: {
+                if (mouse.button == Qt.LeftButton)
+                    tumdumdum.play();
+                else if (mouse.button == Qt.RightButton)
+                    tumdumdum.stop();
+                else if (mouse.button == Qt.MiddleButton)
+                    tumdumdum.pause();
+            }
         }
-    }
-    Button {
-        id: lc
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
 
-        anchors {
-            top: parent.top
-            left: sc.right
-        }
-        width: 100
-        height: 80
+            text: "loop tum"
 
-        text: "loop cuen"
-
-        onReleased: {
-            if (mouse.button == Qt.LeftButton)
-                cuen.playLoop();
-            else if (mouse.button == Qt.RightButton)
-                cuen.stop();
-            else if (mouse.button == Qt.MiddleButton)
-                cuen.pause();
-        }
-    }
-
-    Button {
-        id: st
-
-        anchors {
-            top: parent.top
-            left: lc.right
+            onReleased: {
+                if (mouse.button == Qt.LeftButton)
+                    tumdumdum.playLoop();
+                else if (mouse.button == Qt.RightButton)
+                    tumdumdum.stop();
+                else if (mouse.button == Qt.MiddleButton)
+                    tumdumdum.pause();
+            }
         }
 
-        width: 100
-        height: 80
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
 
-        text: "single tum"
+            text: "vol\n+"
 
-        onReleased: {
-            if (mouse.button == Qt.LeftButton)
-                tumdumdum.play();
-            else if (mouse.button == Qt.RightButton)
-                tumdumdum.stop();
-            else if (mouse.button == Qt.MiddleButton)
-                tumdumdum.pause();
+            onReleased: {
+                mixer.volume += 0.1;
+            }
         }
-    }
-    Button {
-        id: lt
 
-        anchors {
-            top: parent.top
-            left: st.right
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
+
+            text: "single bg"
+
+            onReleased: {
+                if (mouse.button == Qt.LeftButton)
+                    bg.play();
+                else if (mouse.button == Qt.RightButton)
+                    bg.stop();
+                else if (mouse.button == Qt.MiddleButton)
+                    bg.pause();
+            }
         }
-        width: 100
-        height: 80
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
 
-        text: "loop tum"
+            text: "loop bg"
 
-        onReleased: {
-            if (mouse.button == Qt.LeftButton)
-                tumdumdum.playLoop();
-            else if (mouse.button == Qt.RightButton)
-                tumdumdum.stop();
-            else if (mouse.button == Qt.MiddleButton)
-                tumdumdum.pause();
+            onReleased: {
+                if (mouse.button == Qt.LeftButton)
+                    bg.playLoop();
+                else if (mouse.button == Qt.RightButton)
+                    bg.stop();
+                else if (mouse.button == Qt.MiddleButton)
+                    bg.pause();
+            }
         }
-    }
 
-    Button {
-        id: volumeUp
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
 
-        anchors {
-            top: sc.bottom
-            left: parent.left
+            text: "vol\n-"
+
+            onReleased: {
+                mixer.volume -= 0.1;
+            }
         }
-        width: 100
-        height: 80
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
 
-        text: "vol\n+"
+            text: "mixer\npause"
 
-        onReleased: {
-            mixer.volume += 0.1;
+            onReleased: {
+                mixer.pause();
+            }
         }
-    }
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
 
-    Button {
-        id: sb
+            text: "mixer\nstop"
 
-        anchors {
-            top: lc.bottom
-            left: volumeUp.right
+            onReleased: {
+                mixer.stop();
+            }
         }
-        width: 100
-        height: 80
+        Button {
+            width: panel.width / grid.columns
+            height: panel.height / grid.rows
 
-        text: "single bg"
+            text: "mixer\nmute"
 
-        onReleased: {
-            if (mouse.button == Qt.LeftButton)
-                bg.play();
-            else if (mouse.button == Qt.RightButton)
-                bg.stop();
-            else if (mouse.button == Qt.MiddleButton)
-                bg.pause();
-        }
-    }
-    Button {
-        id: lb
-
-        anchors {
-            top: lc.bottom
-            left: sb.right
-        }
-        width: 100
-        height: 80
-
-        text: "loop bg"
-
-        onReleased: {
-            if (mouse.button == Qt.LeftButton)
-                bg.playLoop();
-            else if (mouse.button == Qt.RightButton)
-                bg.stop();
-            else if (mouse.button == Qt.MiddleButton)
-                bg.pause();
-        }
-    }
-
-    Button {
-        id: volumeDown
-
-        anchors {
-            top: lt.bottom
-            left: lb.right
-        }
-        width: 100
-        height: 80
-
-        text: "vol\n-"
-
-        onReleased: {
-            mixer.volume -= 0.1;
+            onReleased: {
+                mixer.mute();
+            }
         }
     }
 
@@ -197,21 +184,21 @@ QuasiGame {
     QuasiAudio {
         id: cuen
 
-        source: ":/cuen.wav"
+        source: ":/sounds/cuen.wav"
         mixer: mixer
     }
 
     QuasiAudio {
         id: tumdumdum
 
-        source: ":/tumdumdum.wav"
+        source: ":/sounds/tumdumdum.wav"
         mixer: mixer
     }
 
     QuasiAudio {
         id: bg
 
-        source: ":/bg.wav"
+        source: ":/sounds/bg.wav"
         mixer: mixer
     }
 

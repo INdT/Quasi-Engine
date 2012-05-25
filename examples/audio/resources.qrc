@@ -2,8 +2,8 @@
 <qresource>
     <file>GameWindow.qml</file>
     <file>Button.qml</file>
-    <file>cuen.wav</file>
-    <file>tumdumdum.wav</file>
-    <file>bg.wav</file>
+    <file>sounds/cuen.wav</file>
+    <file>sounds/tumdumdum.wav</file>
+    <file>sounds/bg.wav</file>
 </qresource>
 </RCC>
