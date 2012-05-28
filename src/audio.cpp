@@ -20,6 +20,7 @@
  */
 
 #include <QtCore/QFile>
+#include <QtCore/qmath.h>
 #include <QDebug>///
 
 #include "audio.h"
@@ -143,25 +144,24 @@ void Audio::setVolume(const qreal &volume, const bool &store)
     if (store && (m_volume != newVolume))
         m_volume = newVolume;
 
-    // TODO set volume
 #if QT_VERSION >= 0x050000
     m_audioOutput->setVolume(newVolume);
 #else
-    qDebug() << "CUEN";
-    // TODO qt4?
-    /*QByteArray *newByteArray = new QByteArray(m_byteArray->size(), 0);
-    if (m_byteArray) {
-        qDebug() << m_byteArray->size() << volume;
-        for (int i = 0; i < m_byteArray->size(); i++) {
-            newByteArray->append((int)m_byteArray->at(i) * 1.0);
-            //newByteArray->append(m_byteArray->at(i) * volume);
+    // TODO there are noise when calculating volume
+    // TODO memory consumption when decreasing/increasing volume
+    if (m_byteArray && newVolume != 1.0) {
+        QByteArray *newByteArray = new QByteArray();
+        int i;
+        //qreal multiplier = qTan(newVolume);
+
+        for (i = 0; i < m_byteArray->size(); i++) {
+            int newData = static_cast<qint16>(m_byteArray->at(i) * newVolume);
+            newByteArray->append(newData);
         }
 
-        m_buffer->close();
-        delete m_buffer;
         m_buffer = new QBuffer(newByteArray);
-        //m_buffer->setBuffer(newByteArray);
-    }*/
+    } else if (newVolume == 1.0)
+        m_buffer = new QBuffer(m_byteArray);
 #endif
 }
 
