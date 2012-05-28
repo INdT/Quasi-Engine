@@ -33,7 +33,7 @@ class Audio: public QObject
 
     Q_PROPERTY(Mixer *mixer WRITE setMixer)
     Q_PROPERTY(QString source READ source WRITE setSource)
-    Q_PROPERTY(qreal volume READ volume WRITE setVolume)
+    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
 
 public:
     Audio(QObject *parent = 0);
@@ -45,23 +45,22 @@ public:
     void setSource(const QString &source);
 
     qreal volume() const;
-    void setVolume(const qreal &volume);
+    void setVolume(const qreal &volume, const bool &storeVolume = true);
 
 public slots:
     void playLoop();
     void play();
     void pause();
     void stop();
-    void mute();
 
 signals:
+    void volumeChanged();
 
 private slots:
     void evaluate(QAudio::State state);
     void changeVolume(const qreal &volume);
     void changePause();
     void changeStop();
-    void changeMute();
 
 private:
     void internalPlay(const bool &loop = false);
@@ -78,7 +77,6 @@ private:
     qreal m_volume;
     bool m_loop;
     bool m_paused;
-    bool m_muted;
 };
 
 #endif /* _AUDIO_ */

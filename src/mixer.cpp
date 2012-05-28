@@ -24,6 +24,7 @@
 Mixer::Mixer(QObject *parent)
     : QObject(parent)
     , m_volume(1.0)
+    , m_oldVolume(0)
     , m_paused(false)
     , m_stopped(false)
     , m_muted(false)
@@ -67,6 +68,12 @@ void Mixer::stop()
 void Mixer::mute()
 {
     m_muted = !m_muted;
+
+    if (m_muted) {
+        m_oldVolume = m_volume;
+        setVolume(0);
+    } else
+        setVolume(m_oldVolume);
 
     emit muteChanged();
 }

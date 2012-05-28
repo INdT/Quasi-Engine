@@ -31,24 +31,15 @@ Audio::Audio(QObject *parent)
     , m_volume(1.0)
     , m_loop(false)
     , m_paused(false)
-    , m_muted(false)
 {
-    // XXX take  alook on QSoundEffect to use instead of QAudioOutput
+    // XXX take a look on QSoundEffect to use instead of QAudioOutput
     // ^^^ QSoundEffects is just available on Qt5. Cuen.
-    // TODO how to expose or get these vars?
-    m_audioFormat.setFrequency(44100);
-    //m_audioFormat.setFrequency(16000);
-    m_audioFormat.setSampleSize(16);
-    m_audioFormat.setChannels(1);
     m_audioFormat.setCodec("audio/pcm");
 
-    //
     m_audioFormat.setByteOrder(QAudioFormat::LittleEndian);
     m_audioFormat.setSampleType(QAudioFormat::SignedInt);
 
     m_deviceInfo = QAudioDeviceInfo(QAudioDeviceInfo::defaultOutputDevice());
-    qDebug() << "Supported codecs:";///
-    qDebug() << m_deviceInfo.supportedCodecs();///
 }
 
 Audio::~Audio()
@@ -64,7 +55,6 @@ void Audio::setMixer(Mixer *mixer)
 
     connect(m_mixer, SIGNAL(pauseChanged()), this, SLOT(changePause()));
     connect(m_mixer, SIGNAL(stopChanged()), this, SLOT(changeStop()));
-    connect(m_mixer, SIGNAL(muteChanged()), this, SLOT(changeMute()));
 }
 
 QString Audio::source() const
@@ -87,6 +77,52 @@ void Audio::setSource(const QString &source)
 
         // we need to keep this byte array to calculate the volume of the sound on qt4 =/
         inputFile.open(QIODevice::ReadOnly);
+
+        // initialize audio format
+        // based on the code from WavFile, from Expresso lib
+        // http://gitorious.org/expresso/expresso
+        struct header {
+            char chunkId[4];
+            quint32 chunkSIze;
+            char format[4];
+            char subChunk1Id[4];
+            quint32 subChunk1Size;
+            qint16 audioFormat;
+            quint16 numChannels;
+            quint32 sampleRate;
+            quint32 byteRate;
+            quint16 blockAlign;
+            quint16 bitsPerSample;
+            char subChunk2Id[4];
+            quint32 subChunk2Size;
+        } wavHeader;
+
+        const int wavHeaderSize = sizeof(struct header);
+        if (inputFile.read(reinterpret_cast<char *>(&wavHeader), wavHeaderSize) != wavHeaderSize)
+            // XXX show error loading wav file
+            qDebug() << "FIAL!";
+
+        const QByteArray cid(wavHeader.chunkId, 4);
+        const QByteArray format(wavHeader.format, 4);
+        const QByteArray subCid(wavHeader.subChunk1Id, 4);
+
+        const bool validChunk = (wavHeader.subChunk1Size == 16 && wavHeader.audioFormat == 1) ||
+                                (wavHeader.subChunk1Size == 40 && wavHeader.audioFormat == -2);
+
+        if (cid != "RIFF" || format != "WAVE" || subCid != "fmt " || !validChunk) {
+            qDebug() << "CUEN";
+            // XXX show error loading sound format
+        }
+        // XXX RIFX for big-endian?
+
+        if (wavHeader.bitsPerSample == 0)
+            // XXX show error loading sound format
+            qDebug() << "FUUUUU";
+
+        m_audioFormat.setSampleSize(wavHeader.bitsPerSample);
+        m_audioFormat.setChannels(wavHeader.numChannels);
+        m_audioFormat.setSampleRate(wavHeader.sampleRate);
+
         inputFile.seek(44); // skipping wav header
         m_byteArray = new QByteArray(inputFile.readAll());
         inputFile.close();
@@ -100,34 +136,33 @@ qreal Audio::volume() const
     return m_volume;
 }
 
-void Audio::setVolume(const qreal &volume)
+void Audio::setVolume(const qreal &volume, const bool &store)
 {
     qreal newVolume = qBound(0.0, volume, 1.0);
 
-    if (m_volume != newVolume) {
+    if (store && (m_volume != newVolume))
         m_volume = newVolume;
 
-        // TODO set volume
+    // TODO set volume
 #if QT_VERSION >= 0x050000
-        m_audioOutput->setVolume(m_volume);
+    m_audioOutput->setVolume(newVolume);
 #else
-        qDebug() << "CUEN";
-        // TODO qt4?
-        /*QByteArray *newByteArray = new QByteArray(m_byteArray->size(), 0);
-        if (m_byteArray) {
-            qDebug() << m_byteArray->size() << volume;
-            for (int i = 0; i < m_byteArray->size(); i++) {
-                newByteArray->append((int)m_byteArray->at(i) * 1.0);
-                //newByteArray->append(m_byteArray->at(i) * volume);
-            }
+    qDebug() << "CUEN";
+    // TODO qt4?
+    /*QByteArray *newByteArray = new QByteArray(m_byteArray->size(), 0);
+    if (m_byteArray) {
+        qDebug() << m_byteArray->size() << volume;
+        for (int i = 0; i < m_byteArray->size(); i++) {
+            newByteArray->append((int)m_byteArray->at(i) * 1.0);
+            //newByteArray->append(m_byteArray->at(i) * volume);
+        }
 
-            m_buffer->close();
-            delete m_buffer;
-            m_buffer = new QBuffer(newByteArray);
-            //m_buffer->setBuffer(newByteArray);
-        }*/
+        m_buffer->close();
+        delete m_buffer;
+        m_buffer = new QBuffer(newByteArray);
+        //m_buffer->setBuffer(newByteArray);
+    }*/
 #endif
-    }
 }
 
 void Audio::playLoop()
@@ -153,7 +188,7 @@ void Audio::internalPlay(const bool &loop)
     // audioOutput created and playing
     if (m_audioOutput && m_loop) {
         m_buffer->open(QIODevice::ReadOnly);
-        m_audioOutput->setBufferSize(m_buffer->size());///
+        //m_audioOutput->setBufferSize(m_buffer->size());///
         m_audioOutput->start(m_buffer);
 
         return;
@@ -192,11 +227,6 @@ void Audio::pause()
 
     m_audioOutput->suspend();
     m_paused = true;
-
-    /*if (m_audioOutput->state() == QAudio::ActiveState)
-        m_audioOutput->suspend();
-    else if (m_audioOutput->state() == QAudio::SuspendedState)
-        m_audioOutput->resume();*/
 }
 
 void Audio::stop()
@@ -207,25 +237,9 @@ void Audio::stop()
     m_audioOutput->stop();
     m_buffer->close();
     m_paused = false;
-}
 
-void Audio::mute()
-//void Audio::muted(const bool &muted)
-{
-    if (!m_audioOutput)
-        return;
-
-    if (m_muted) {
-        // setVolume(0)?
-        m_audioOutput->resume();
-        m_muted = false;
-
-        return;
-    }
-
-    // setVolume(oldVolume)?
-    m_audioOutput->suspend();
-    m_muted = true;
+    delete m_audioOutput;
+    m_audioOutput = 0;
 }
 
 void Audio::evaluate(QAudio::State state)
@@ -246,7 +260,9 @@ void Audio::evaluate(QAudio::State state)
 
 void Audio::changeVolume(const qreal &volume)
 {
-    setVolume(volume);
+    // we need to multiplex local volume with the master one
+    qreal realVolume = volume * m_volume;
+    setVolume(realVolume, false);
 }
 
 void Audio::changePause()
@@ -257,9 +273,4 @@ void Audio::changePause()
 void Audio::changeStop()
 {
     stop();
-}
-
-void Audio::changeMute()
-{
-    mute();
 }

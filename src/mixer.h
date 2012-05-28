@@ -50,6 +50,7 @@ signals:
 
 private:
     qreal m_volume;
+    qreal m_oldVolume;
     bool m_paused;
     bool m_stopped;
     bool m_muted;
