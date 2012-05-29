@@ -108,10 +108,10 @@ QuasiGame {
         onContact: {
             bodyB.opacity = 0;
         }
-        /*onPreContact: {
+        onPreContact: {
             console.log("precontact");
-            contact.SetEnabled(false);
-        }*/
+            contact.enabled = false;
+        }
 
         Component.onCompleted: {
             var platformObject;
