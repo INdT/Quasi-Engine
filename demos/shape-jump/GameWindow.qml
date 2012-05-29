@@ -38,25 +38,22 @@ QuasiGame {
     QuasiPhysicsScene {
         id: scene
 
-        anchors.fill: parent
+        //anchors.fill: parent
+        width: parent.width
+        height: parent.height
 
-        /*QuasiBody {
-            anchors.right: parent.right
-            width: 200
-            height: 100
+        /*viewport: QuasiViewport {
+            id: gameViewport
 
-            bodyType: Quasi.StaticBodyType
-
-            Rectangle {
-                anchors.fill: parent
-                color: "red"
-            }
+            animationDuration: 1000
         }*/
+
         QuasiBody {
             id: character
 
             property int __horizontalImpulse: 20
-            property int __verticalImpulse: 20
+            property int __verticalImpulse: 30
+            property bool __jumping: false
 
             width: 50
             height: 50
@@ -83,35 +80,54 @@ QuasiGame {
             focus: true
             Keys.onPressed: {
                 switch (event.key) {
+                    case Qt.Key_A:
                     case Qt.Key_Left:
                         var impulse = Qt.point(x * -__horizontalImpulse, 0);
                         var point = Qt.point(x + width / 2, y + height / 2);
 
                         applyLinearImpulse(impulse, point);
+                        event.accepted = true;
                         break;
+                    case Qt.Key_D:
                     case Qt.Key_Right:
                         var impulse = Qt.point(x * __horizontalImpulse, 0);
                         var point = Qt.point(x + width / 2, y + height / 2);
 
                         applyLinearImpulse(impulse, point);
+                        event.accepted = true;
                         break;
-                    case Qt.Key_Up:
-                        var impulse = Qt.point(0, y * -__verticalImpulse);
-                        var point = Qt.point(x + width / 2, y + height / 2);
+                    case Qt.Key_W:
+                    case Qt.Key_Up: {
+                        if (!__jumping) {
+                            var impulse = Qt.point(0, y * -__verticalImpulse);
+                            var point = Qt.point(x + width / 2, y + height / 2);
 
-                        applyLinearImpulse(impulse, point);
+                            applyLinearImpulse(impulse, point);
+                            __jumping = true;
+                        }
+                        event.accepted = true;
                         break;
+                    }
                 }
             }
         }
 
         onContact: {
-            bodyB.opacity = 0;
-        }
-        onPreContact: {
-            var bottom = bodyA.y + bodyA.height;
+            var cube = bodyA;
+            var platform = bodyB;
 
-            if (bottom > bodyB.y)
+            if (cube.__jumping) {
+                cube.__jumping = false;
+                platform.opacity = 0;
+            }
+        }
+
+        onPreContact: {
+            var cube = bodyA;
+            var platform = bodyB;
+            var bottom = cube.y + cube.height;
+
+            if (bottom > platform.y)
                 contact.enabled = false;
         }
 
