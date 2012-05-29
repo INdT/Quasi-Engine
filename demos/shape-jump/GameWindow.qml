@@ -109,8 +109,10 @@ QuasiGame {
             bodyB.opacity = 0;
         }
         onPreContact: {
-            console.log("precontact");
-            contact.enabled = false;
+            var bottom = bodyA.y + bodyA.height;
+
+            if (bottom > bodyB.y)
+                contact.enabled = false;
         }
 
         Component.onCompleted: {
