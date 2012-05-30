@@ -27,26 +27,59 @@ QuasiGame {
 
     currentScene: scene
 
-    QuasiScriptBehavior {
-        id: platformCreation
-
-        script: {
-            console.log("buga");
-        }
-    }
-
     QuasiPhysicsScene {
         id: scene
 
-        //anchors.fill: parent
-        width: parent.width
-        height: parent.height
+        anchors.fill: parent
+        //width: parent.width
+        //height: parent.height
 
-        /*viewport: QuasiViewport {
+        viewport: QuasiViewport {
             id: gameViewport
 
-            animationDuration: 1000
-        }*/
+            //animationDuration: 1000
+        }
+
+
+        QuasiEntity {
+            id: god
+
+            property int count: 0
+            property int __max: 10
+            property int deltaY: 100
+            property int __latestX: 0
+            property int __latestY: 0
+
+            function generatePos(minX, minY, maxX, maxY)
+            {
+                var x = Math.floor(Math.random() * (maxX - minX + 1) + minX);
+                var y = Math.floor(Math.random() * (maxY - minY + 1) + minY);
+
+                return [x, y];
+            }
+
+            behavior: QuasiScriptBehavior {
+                script: {
+                    if (god.count < god.__max) {
+                        var platformObject;
+                        platformObject = platform.createObject(scene);
+
+                        var pos = god.generatePos(0, god.__latestY - (god.deltaY * 1.5),
+                                                 game.width - platformObject.width,
+                                                 god.__latestY - (god.deltaY / 2));
+
+                        platformObject.x = pos[0];
+                        platformObject.y = pos[1];
+                        platformObject.z = 0;
+
+                        god.__latestX = platformObject.x;
+                        //god.__latestY -= god.deltaY;
+                        god.__latestY = platformObject.y;
+                        god.count++;
+                    }
+                }
+            }
+        }
 
         QuasiBody {
             id: character
@@ -56,13 +89,14 @@ QuasiGame {
             property bool __jumping: false
 
             width: 50
-            height: 50
+            height: width
 
             friction: 0.3
             density: 30
             //restitution: 0.6
             sleepingAllowed: false
             bullet: false
+            z: 1
 
             shapeGeometry: Quasi.RectangleBodyShape
             //behavior: script
@@ -99,16 +133,24 @@ QuasiGame {
                     case Qt.Key_W:
                     case Qt.Key_Up: {
                         if (!__jumping) {
+                            __jumping = true;
                             var impulse = Qt.point(0, y * -__verticalImpulse);
                             var point = Qt.point(x + width / 2, y + height / 2);
 
                             applyLinearImpulse(impulse, point);
-                            __jumping = true;
                         }
                         event.accepted = true;
                         break;
                     }
                 }
+            }
+
+            onXChanged: {
+                // TODO fix logic
+                /*if (x <= gameViewport.xOffset)
+                    gameViewport.hScroll(gameViewport.xOffset - (game.width / 2));
+                else if (x + width >= gameViewport.xOffset + game.width)
+                    gameViewport.hScroll(gameViewport.xOffset + (game.width / 2));*/
             }
         }
 
@@ -118,7 +160,7 @@ QuasiGame {
 
             if (cube.__jumping) {
                 cube.__jumping = false;
-                platform.opacity = 0;
+                //platform.opacity = 0; // XXX
             }
         }
 
@@ -135,12 +177,16 @@ QuasiGame {
             var platformObject;
 
             platformObject = platform.createObject(scene);
+            //platformObject.x = game.width - (game.width);// - platformObject.width);
+            //platformObject.y = game.height - (game.height);// - platformObject.height);
             platformObject.x = (game.width / 2) - platformObject.width / 2;
             platformObject.y = game.height - 50;
+            platformObject.z = 0;
 
-            platformObject = platform.createObject(scene);
-            platformObject.x = (game.width / 2) - platformObject.width / 2;
-            platformObject.y = game.height - 150;
+            god.__latestX = platformObject.x;
+            god.__latestY = platformObject.y;
+            console.log(platformObject.y);
+            god.count++;
         }
     }
 
@@ -148,6 +194,8 @@ QuasiGame {
         id: platform
 
         QuasiBody {
+            id: platformBody
+
             width: 80
             height: 20
 
@@ -173,8 +221,10 @@ QuasiGame {
             }
 
             onOpacityChanged: {
-                if (opacity == 0)
-                    destroy();
+                if (opacity == 0) {
+                    platformBody.destroy();
+                    god.count--;
+                }
             }
         }
     }
