@@ -76,7 +76,6 @@ void Audio::setSource(const QString &source)
 
         QFile inputFile(m_source);
 
-        // we need to keep this byte array to calculate the volume of the sound on qt4 =/
         inputFile.open(QIODevice::ReadOnly);
 
         // initialize audio format
@@ -125,6 +124,7 @@ void Audio::setSource(const QString &source)
         m_audioFormat.setSampleRate(wavHeader.sampleRate);
 
         inputFile.seek(44); // skipping wav header
+        // we need to keep this byte array to calculate the volume of the sound on qt4 =/
         m_byteArray = new QByteArray(inputFile.readAll());
         inputFile.close();
 
@@ -159,7 +159,16 @@ void Audio::setVolume(const qreal &volume, const bool &store)
             newByteArray->append(newData);
         }
 
+        /*int pos = m_buffer->pos();
+        bool resume;
+        if (m_audioOutput->state() == QAudio::ActiveState)
+            resume = true;
+        pause();*/
         m_buffer = new QBuffer(newByteArray);
+        /*m_buffer->open(QIODevice::ReadOnly);
+        m_buffer->seek(pos);
+        if (resume)
+            play();*/
     } else if (newVolume == 1.0)
         m_buffer = new QBuffer(m_byteArray);
 #endif
@@ -170,6 +179,7 @@ void Audio::playLoop()
     internalPlay(true);
 }
 
+#include <QEventLoop>
 void Audio::play()
 {
     internalPlay();
@@ -187,9 +197,9 @@ void Audio::internalPlay(const bool &loop)
 
     // audioOutput created and playing
     if (m_audioOutput && m_loop) {
-        m_buffer->open(QIODevice::ReadOnly);
-        //m_audioOutput->setBufferSize(m_buffer->size());///
+        m_buffer->reset(); // already open
         m_audioOutput->start(m_buffer);
+        qDebug() << "loop";
 
         return;
     }
@@ -202,7 +212,7 @@ void Audio::internalPlay(const bool &loop)
         return;
     }
 
-    // ok, jst play it
+    // ok, just play it
     stop();
     m_audioOutput = new QAudioOutput(m_deviceInfo, m_audioFormat);
 
@@ -246,7 +256,7 @@ void Audio::evaluate(QAudio::State state)
 {
     // TODO
     if (m_audioOutput)
-        qDebug() << "::" << m_audioOutput->error();///
+        qDebug() << "::" << m_audioOutput->error() << state;///
 
     if (state == QAudio::IdleState && m_loop) {
         internalPlay(m_loop);
@@ -255,6 +265,8 @@ void Audio::evaluate(QAudio::State state)
 
         delete m_audioOutput;
         m_audioOutput = 0;
+    } else if (state == QAudio::StoppedState && m_audioOutput->error() != QAudio::NoError) {
+        qDebug() << "SHIT HAPPENS";
     }
 }
 
