@@ -23,9 +23,31 @@
 #define _AUDIO_H_
 
 #include <QtCore/QBuffer>
+#include <QtCore/QIODevice>
 #include <QtMultimedia/QAudioOutput>
 
 #include "mixer.h"
+
+class AudioBuffer: public QIODevice
+{
+    Q_OBJECT
+
+public:
+    AudioBuffer(QByteArray *byteArray);
+    ~AudioBuffer();
+
+    bool open(const bool &loop = false);
+    void close();
+
+    qint64 writeData(const char *data, qint64 len);
+    qint64 readData(char *data, qint64 len);
+    qint64 bytesAvailable() const;
+
+private:
+    QByteArray *m_byteArray;
+    qint64 m_pos;
+    bool m_loop;
+};
 
 class Audio: public QObject
 {
@@ -70,7 +92,8 @@ private:
     QAudioOutput *m_audioOutput;
     QAudioFormat m_audioFormat;
     QAudioDeviceInfo m_deviceInfo;
-    QBuffer *m_buffer;
+    AudioBuffer *m_buffer;
+    //QBuffer *m_buffer;
     QByteArray *m_byteArray;
 
     QString m_source;

@@ -25,6 +25,60 @@
 
 #include "audio.h"
 
+AudioBuffer::AudioBuffer(QByteArray *byteArray)
+    : m_pos(0)
+    , m_loop(false)
+{
+    m_byteArray = byteArray;
+}
+
+AudioBuffer::~AudioBuffer()
+{
+}
+
+bool AudioBuffer::open(const bool &loop)
+{
+    m_loop = loop;
+    return QIODevice::open(QIODevice::ReadOnly);
+}
+
+void AudioBuffer::close()
+{
+    m_pos = 0;
+    m_loop = false;
+    QIODevice::close();
+}
+
+qint64 AudioBuffer::writeData(const char *data, qint64 len)
+{
+    Q_UNUSED(data);
+    Q_UNUSED(len);
+
+    return 0;
+}
+
+qint64 AudioBuffer::readData(char *data, qint64 len)
+{
+    qint64 total = 0;
+
+    // TODO not working well for single play
+    //while (len - total > 0) {
+        const qint64 chunk = qMin(m_byteArray->size() - m_pos, len - total);
+        memcpy(data + total, m_byteArray->constData() + m_pos, chunk);
+
+        m_pos = (m_loop) ? (m_pos + chunk) % m_byteArray->size() : m_pos + chunk;
+        total += chunk;
+    //}
+
+        qDebug() << m_loop << m_pos << total;
+    return total;
+}
+
+qint64 AudioBuffer::bytesAvailable() const
+{
+    return m_byteArray->size() + QIODevice::bytesAvailable();
+}
+
 Audio::Audio(QObject *parent)
     : QObject(parent)
     , m_mixer(0)
@@ -119,16 +173,19 @@ void Audio::setSource(const QString &source)
             // XXX show error loading sound format
             qDebug() << "FUUUUU";
 
+        // TODO check for nearest audio format
         m_audioFormat.setSampleSize(wavHeader.bitsPerSample);
         m_audioFormat.setChannels(wavHeader.numChannels);
         m_audioFormat.setSampleRate(wavHeader.sampleRate);
 
         inputFile.seek(44); // skipping wav header
         // we need to keep this byte array to calculate the volume of the sound on qt4 =/
-        m_byteArray = new QByteArray(inputFile.readAll());
-        inputFile.close();
+        /*m_byteArray = new QByteArray(inputFile.readAll());*/
 
-        m_buffer = new QBuffer(m_byteArray);
+        m_buffer = new AudioBuffer(new QByteArray(inputFile.readAll()));
+        inputFile.close();
+        //m_buffer = new AudioBuffer(m_byteArray);
+        //m_buffer = new QBuffer(m_byteArray);
     }
 }
 
@@ -164,13 +221,15 @@ void Audio::setVolume(const qreal &volume, const bool &store)
         if (m_audioOutput->state() == QAudio::ActiveState)
             resume = true;
         pause();*/
-        m_buffer = new QBuffer(newByteArray);
+        m_buffer = new AudioBuffer(newByteArray);
+        //m_buffer = new QBuffer(newByteArray);
         /*m_buffer->open(QIODevice::ReadOnly);
         m_buffer->seek(pos);
         if (resume)
             play();*/
     } else if (newVolume == 1.0)
-        m_buffer = new QBuffer(m_byteArray);
+        m_buffer = new AudioBuffer(m_byteArray);
+        //m_buffer = new QBuffer(m_byteArray);
 #endif
 }
 
@@ -179,7 +238,6 @@ void Audio::playLoop()
     internalPlay(true);
 }
 
-#include <QEventLoop>
 void Audio::play()
 {
     internalPlay();
@@ -196,13 +254,13 @@ void Audio::internalPlay(const bool &loop)
         return;
 
     // audioOutput created and playing
-    if (m_audioOutput && m_loop) {
+    /*if (m_audioOutput && m_loop) {
         m_buffer->reset(); // already open
         m_audioOutput->start(m_buffer);
         qDebug() << "loop";
 
         return;
-    }
+    }*/
 
     // audioOutput created, but on 'pause'
     if (m_paused) {
@@ -219,7 +277,8 @@ void Audio::internalPlay(const bool &loop)
     connect(m_audioOutput, SIGNAL(stateChanged(QAudio::State)),
             this, SLOT(evaluate(QAudio::State)));
 
-    m_buffer->open(QIODevice::ReadOnly);
+    //m_buffer->open(QIODevice::ReadOnly);
+    m_buffer->open(m_loop);
     m_audioOutput->start(m_buffer);
 }
 
