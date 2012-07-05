@@ -14,8 +14,9 @@ MOC_DIR = tmp
 DEPENDPATH += .
 INCLUDEPATH += .
 
-INCLUDEPATH += $$BOX2DPATH/include
-LIBS += -L$$BOX2DPATH/lib -lBox2D
+INCLUDEPATH += /opt/Box2D/include
+LIBS += -L/home/zanoni/temp -lBox2D
+LIBS += /opt/android-ndk-r8/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/lib/gcc/arm-linux-androideabi/4.4.3/armv7-a/libgcc.a
 
 HEADERS += quasideclarativeitem.h \
            quasipainteditem.h \
@@ -97,12 +98,21 @@ SOURCES += entity.cpp \
 
 QMAKE_POST_LINK = $$QMAKE_COPY $$PWD/qmldir $$OUT_PWD/imports/QuasiGame
 
-!isEmpty(QTPATH): target.path = $$QTPATH/imports/$$TARGETPATH
-else: target.path = $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
-
-qmlpluginfiles.path = $$target.path
+qmlpluginfiles.path = imports
 qmlpluginfiles.files += \
     $$PWD/qmldir \
     $$OUT_PWD/imports/QuasiGame/*
+
+android {
+    x86 {
+        target.path = /libs/x86
+    } else: armeabi-v7a {
+        target.path = /libs/armeabi-v7a
+    } else {
+        target.path = /libs/armeabi
+    }
+}
+
+DEPLOYMENTFOLDERS += qmlpluginfiles
 
 INSTALLS += target qmlpluginfiles

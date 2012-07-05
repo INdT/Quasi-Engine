@@ -22,6 +22,7 @@
 #include "launcher.h"
 
 #include <QtCore/qglobal.h>
+#include <QtCore/QDir>
 
 #if QT_VERSION >= 0x050000
 #include <QtGui/QGuiApplication>
@@ -55,7 +56,8 @@ int main(int argc, char *argv[])
     Launcher launcher;
 
     view.engine()->rootContext()->setContextProperty("launcher", &launcher);
-    view.engine()->addImportPath("../../imports");
+    view.engine()->addImportPath("/imports");
+    view.engine()->addPluginPath(QDir::homePath()+"/../lib");
 
 #if QT_VERSION >= 0x050000
     view.setSource(QUrl("qrc:/main-qt5.qml"));
