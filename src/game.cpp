@@ -24,14 +24,6 @@
 #include "scene.h"
 #include "viewport.h"
 
-#if QT_VERSION >= 0x050000
-#include <QtQuick/QQuickCanvas>
-#else
-#include <QtGui/QApplication>
-#endif
-
-#include <QtGui/QCursor>
-
 Game::Game(QuasiDeclarativeItem *parent)
     : QuasiDeclarativeItem(parent)
     , m_currentScene(0)
@@ -120,21 +112,6 @@ void Game::update()
         m_currentScene->update(elapsedTime);
     if (m_viewport)
         m_viewport->update(elapsedTime);
-}
-
-QPointF Game::mouse()
-{
-#if QT_VERSION >= 0x050000
-    return canvas()->mapFromGlobal(QCursor::pos());
-#else
-    m_mousePos = QCursor::pos();
-    QWidget *widget = QApplication::widgetAt(m_mousePos);
-
-    if (widget)
-        return widget->mapFromGlobal(m_mousePos);
-    else
-        return m_mousePos;
-#endif
 }
 
 #if QT_VERSION < 0x050000
