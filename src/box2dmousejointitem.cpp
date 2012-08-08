@@ -24,9 +24,15 @@
 #include "entity.h"
 #include "game.h"
 
-#include <Box2D/Box2D.h>
+#if QT_VERSION >= 0x050000
+#include <QtQuick/QQuickCanvas>
+#else
+#include <QtGui/QApplication>
+#endif
 
 #include <QtGui/QCursor>
+
+#include <Box2D/Box2D.h>
 
 Box2DMouseJointItem::Box2DMouseJointItem(Scene *parent)
     : Box2DBaseItem(parent)
@@ -36,7 +42,7 @@ Box2DMouseJointItem::Box2DMouseJointItem(Scene *parent)
     , m_maxForce(200.0f)
     , m_dummyGround(0)
 {
-    m_synchronize = false;
+//m_synchronize = false;
 }
 
 Box2DMouseJointItem::~Box2DMouseJointItem()
@@ -85,13 +91,17 @@ void Box2DMouseJointItem::setMaxForce(const float &maxForce)
 
 void Box2DMouseJointItem::initialize()
 {
-    if (m_initialized || !m_target || !m_world)
+qDebug("0");
+    if (m_initialized || !m_world || !m_target)
         return;
-
+qDebug("1");
     if (!m_target->initialized()) {
         m_target->setWorld(m_world);
         m_target->initialize();
+qDebug("2");
     }
+
+qDebug("3");
 
     b2BodyDef groundBodyDef; // dummy body
 
@@ -104,8 +114,11 @@ void Box2DMouseJointItem::initialize()
     jointDef.bodyB = m_target->body();
     jointDef.target = m_target->body()->GetWorldCenter();
     jointDef.maxForce = m_maxForce * m_target->body()->GetMass();
-
+    jointDef.target = b2Vec2(0, 0);
+qDebug("4");
     m_joint = static_cast<b2MouseJoint *>(m_worldPtr->CreateJoint(&jointDef));
+
+qDebug("5");
 
     m_initialized = true;
 }
@@ -134,4 +147,28 @@ float Box2DMouseJointItem::b2Angle() const
     return 0.0f;
 }
 
-//TODO: UPDATE MOUSE POS!
+void Box2DMouseJointItem::synchronize()
+{
+    if (!m_joint || !m_target)
+        return;
+qDebug("6");
+    Box2DBaseItem::synchronize();
+qDebug("7");
+    QPoint mousePos;
+
+#if QT_VERSION >= 0x050000
+    mousePos = canvas()->mapFromGlobal(QCursor::pos());
+#else
+    m_mousePos = QCursor::pos();
+    QWidget *widget = QApplication::widgetAt(m_mousePos);
+
+    if (widget)
+        mousePos = widget->mapFromGlobal(m_mousePos);
+    else
+        mousePos = m_mousePos;
+    m_mousePos = mousePos;
+#endif
+qDebug("8");
+    m_joint->SetTarget(b2Vec2(mousePos.x() / m_scaleRatio, -mousePos.y() / m_scaleRatio));
+qDebug("9");
+}
