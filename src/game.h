@@ -36,7 +36,6 @@ class Game : public QuasiDeclarativeItem
 
     Q_PROPERTY(Scene *currentScene READ currentScene WRITE setCurrentScene NOTIFY currentSceneChanged)
     Q_PROPERTY(int fps READ fps WRITE setFps NOTIFY fpsChanged)
-    Q_PROPERTY(QPointF mouse READ mouse)
 
 public:
     Game(QuasiDeclarativeItem *parent = 0);
@@ -47,7 +46,6 @@ public:
     int fps() const;
     void setFps(const int &fps);
 
-    QPointF mouse();
 #if QT_VERSION < 0x050000
     virtual void componentComplete();
 #endif
@@ -66,9 +64,6 @@ private:
     int m_fps;
     Viewport *m_viewport;
     int m_timerId;
-#if QT_VERSION < 0x050000
-    QPoint m_mousePos;
-#endif
 };
 
 #endif /* _GAME_H_ */
