@@ -35,6 +35,9 @@ class Plugins : public QDeclarativeExtensionPlugin
 #endif
 {
     Q_OBJECT
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "QuasiGame" FILE "plugins.json")
+#endif
 
 public:
     void registerTypes(const char *uri);

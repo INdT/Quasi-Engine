@@ -85,6 +85,8 @@ SOURCES += entity.cpp \
            fixture.cpp \
            material.cpp
 
+OTHER_FILES += plugins.json
+
 QMAKE_POST_LINK = $$QMAKE_COPY $$PWD/qmldir $$OUT_PWD/imports/QuasiGame
 
 !isEmpty(QTPATH): target.path = $$QTPATH/imports/$$TARGETPATH
