@@ -23,6 +23,8 @@
 
 #if QT_VERSION >= 0x050000
 #include <QtQml/QQmlExpression>
+#include <QtQml/QQmlComponent>
+#include <QtQml/QQmlEngine>
 #else
 #include <QtDeclarative/QDeclarativeExpression>
 #endif
@@ -56,15 +58,21 @@ void ScriptBehavior::setScript(const QQmlScriptString &script)
 void ScriptBehavior::setScript(const QDeclarativeScriptString &script)
 #endif
 {
+#if QT_VERSION >= 0x050000
+    if (m_script.stringLiteral() != script.stringLiteral()){ // XXX scripts are not working on Qt5 D:
+        m_script = script;
+
+        if (m_expression)
+            delete m_expression;
+
+        m_expression = new QQmlExpression(m_script);
+#else
     if (m_script.script() != script.script()) {
         m_script = script;
 
         if (m_expression)
             delete m_expression;
 
-#if QT_VERSION >= 0x050000
-        m_expression = new QQmlExpression(m_script.context(), m_script.scopeObject(), m_script.script());
-#else
         m_expression = new QDeclarativeExpression(m_script.context(), m_script.scopeObject(), m_script.script());
 #endif
 
