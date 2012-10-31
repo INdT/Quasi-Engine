@@ -75,4 +75,6 @@ void Plugins::registerTypes(const char *uri)
     qmlRegisterType<Fixture>("QuasiGame", 1, 0, "QuasiFixture");
 }
 
+#if QT_VERSION <= 0x048000
 Q_EXPORT_PLUGIN2(QuasiGame, Plugins);
+#endif
