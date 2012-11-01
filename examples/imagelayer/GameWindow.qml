@@ -40,7 +40,6 @@ QuasiGame {
             drawType: Quasi.TiledDrawType
             tileWidth: 32
             tileHeight: 32
-            animated: true
             source: ":/large_enough.png"
             horizontalStep: -5
             layerType: Quasi.MirroredType
@@ -63,7 +62,19 @@ QuasiGame {
         }
 
         Keys.onPressed: {
-            layer.animated = !layer.animated
+            if (event.key == Qt.Key_Right) {
+                if (layer.horizontalStep > 0)
+                    layer.horizontalStep *= -1;
+
+                layer.moveX();
+                event.accepted = true;
+            } else if (event.key == Qt.Key_Left) {
+                if (layer.horizontalStep < 0)
+                    layer.horizontalStep *= -1;
+
+                layer.moveX();
+                event.accepted = true;
+            }
         }
     }
 }
