@@ -69,16 +69,12 @@ class Layer: public QuasiPaintedItem
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool animated READ isAnimated WRITE setAnimated NOTIFY animatedChanged)
     Q_PROPERTY(qreal horizontalStep READ horizontalStep WRITE setHorizontalStep NOTIFY horizontalStepChanged)
     Q_PROPERTY(Quasi::LayerType layerType READ layerType WRITE setLayerType NOTIFY layerTypeChanged)
 
 public:
     Layer(QuasiDeclarativeItem *parent = 0);
     virtual ~Layer();
-
-    bool isAnimated() const { return m_isAnimated; }
-    void setAnimated(bool animated);
 
     qreal horizontalStep() const { return m_horizontalStep; }
     void setHorizontalStep(const qreal &step);
@@ -87,13 +83,11 @@ public:
     void setLayerType(const Quasi::LayerType &type);
 
 signals:
-    void animatedChanged();
     void horizontalStepChanged();
     void horizontalDirectionChanged();
     void layerTypeChanged();
 
 protected:
-    bool m_isAnimated;
     qreal m_horizontalStep;
     Quasi::LayerType m_type;
 };

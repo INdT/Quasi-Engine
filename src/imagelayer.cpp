@@ -32,9 +32,6 @@ ImageLayer::ImageLayer(Layer *parent)
     , m_areaToDraw(2.0)
     , m_columnOffset(0)
     , m_latestPoint(0)
-    , m_globalXPos(0.0)
-    , m_localXPos(0.0)
-    , m_localYPos(0.0)
     , m_initialized(false)
 {
     connect(this, SIGNAL(horizontalDirectionChanged()),
@@ -353,24 +350,9 @@ void ImageLayer::drawPixmap()
 }
 
 // move to a X value
-void ImageLayer::moveX(const qreal &x)
+void ImageLayer::moveX()
 {
-    qreal newValue = x;
-    qreal delta = m_globalXPos + newValue;
-
-    m_globalXPos = newValue * -1;
-    m_localXPos -= delta;
-
-    if (m_localXPos <= -width()) {
-        drawPixmap();
-        m_localXPos = width() + m_localXPos;
-    } else if (m_localXPos >= 0) {
-        if (m_globalXPos != 0) {
-            drawPixmap();
-            m_localXPos = -width() + m_localXPos;
-        } else
-            m_localXPos = 0;
-    }
+    updateHorizontalStep();
 }
 
 void ImageLayer::moveY(const qreal &y)
@@ -411,9 +393,6 @@ void ImageLayer::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     if (!m_currentImage)
         return;
-
-    if (m_isAnimated)
-        updateHorizontalStep();
 
     painter->drawImage(m_currentHorizontalStep, 0, *m_currentImage);
 }

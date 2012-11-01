@@ -69,7 +69,7 @@ public:
 
     int count() const;
 
-    void moveX(const qreal &x);
+    Q_INVOKABLE void moveX();
     void moveY(const qreal &y);
 
 #if QT_VERSION >= 0x050000
@@ -120,10 +120,6 @@ private:
     bool m_drawGrid;
     QColor m_gridColor;
 
-    qreal m_globalXPos;
-    qreal m_globalYPos;
-    qreal m_localXPos;
-    qreal m_localYPos;
     qreal m_currentHorizontalStep;
 
     bool m_initialized;

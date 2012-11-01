@@ -30,7 +30,6 @@
 //! Class constructor
 Layer::Layer(QuasiDeclarativeItem *parent)
     : QuasiPaintedItem(parent)
-    , m_isAnimated(false)
     , m_horizontalStep(1.0)
     , m_type(Quasi::InfiniteType)
 {
@@ -43,16 +42,6 @@ Layer::Layer(QuasiDeclarativeItem *parent)
 //! Class destructor
 Layer::~Layer()
 {
-}
-
-void Layer::setAnimated(bool animated)
-{
-    if (m_isAnimated == animated)
-        return;
-
-    m_isAnimated = animated;
-
-    emit animatedChanged();
 }
 
 void Layer::setHorizontalStep(const qreal &step)
