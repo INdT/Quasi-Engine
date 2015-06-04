@@ -40,7 +40,14 @@ void Polygon::updateShape(qreal penWidth)
     // it's own boundingRect and we have to fix it somehow.
     Q_UNUSED(penWidth);
 
-    b2Vec2 polygon[m_points.count()];
+/* avoid error:
+Variable length array of non-POD element type 'b2Vec2' 
+TODO: rewrite using vectors
+*/
+
+//    b2Vec2 polygon[m_points.count()];
+    b2Vec2 *polygon = new b2Vec2[m_points.count()];
+
     qreal xOffset = x() - parentItem()->width() / 2.0;
     qreal yOffset = y() - parentItem()->height() / 2.0;
 
@@ -58,4 +65,6 @@ void Polygon::updateShape(qreal penWidth)
 
     b2PolygonShape *polygonShape = static_cast<b2PolygonShape*>(m_shape);
     polygonShape->Set(polygon, m_points.count());
+
+    delete [] polygon;
 }

@@ -97,3 +97,9 @@ qmlpluginfiles.files += \
     $$OUT_PWD/imports/QuasiGame/*
 
 INSTALLS += target qmlpluginfiles
+
+unix {
+	QMAKE_CXXFLAGS += -I/usr/local/include
+	LIBS += -L/usr/local/lib
+	INCLUDEPATH += -I/usr/local/include
+}
